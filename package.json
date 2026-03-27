@@ -1,7 +1,7 @@
 {
   "name": "ultra-guru-md",
   "version": "5.0.0",
-  "description": "ULTRA GURU - A Powerful Multi-Device WhatsApp Bot by GuruTech",
+  "description": "GURUTECH 😎 - Ultimate WhatsApp Bot by GuruTech",
   "main": "./index.js",
   "type": "commonjs",
   "engines": {
@@ -13,11 +13,12 @@
     "dev": "node --max-old-space-size=256 index.js"
   },
   "keywords": [
-    "ultra-guru",
+    "gurutech",
     "whatsapp-bot",
     "guru-tech",
     "guruh",
-    "whatsapp-md-bot"
+    "whatsapp-md-bot",
+    "ultra-guru"
   ],
   "author": "GURUTECH 😎",
   "license": "MIT",
@@ -35,7 +36,7 @@
     "dotenv": "*",
     "express": "^4.19.2",
     "ffmpeg-static": "*",
-    "file-type": "17.1.6",
+    "file-type": "16.5.4",
     "fluent-ffmpeg": "*",
     "form-data": "^4.0.1",
     "fs": "^0.0.1-security",
