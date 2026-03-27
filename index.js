@@ -125,7 +125,7 @@ let store;
 
 logger.level = "silent";
 app.use(express.static("guru"));
-app.get("/", (req, res) => res.sendFile(__dirname + "/guru/gifted.html"));
+app.get("/", (req, res) => res.sendFile(__dirname + "/guru/guruh.html"));
 app.get("/health", (req, res) =>
     res.status(200).json({ status: "alive", uptime: process.uptime() }),
 );
@@ -958,7 +958,7 @@ function buildContext(ms, settings, helpers, data) {
         ownerNumber: settings.OWNER_NUMBER,
         ownerName: settings.OWNER_NAME,
         botName: settings.BOT_NAME,
-        giftedRepo: settings.BOT_REPO,
+        guruhRepo: settings.BOT_REPO,
         packName: settings.PACK_NAME,
         packAuthor: settings.PACK_AUTHOR,
         isSuperAdmin: data.isSuperAdmin,
