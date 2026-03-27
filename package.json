@@ -9,11 +9,9 @@
     "npm": "9.x"
   },
   "scripts": {
+    "start": "node --max-old-space-size=256 index.js",
     "dev": "node --max-old-space-size=256 index.js",
-    "start": "pm2 start index.js --max-memory-restart 256M --node-args='--max-old-space-size=256' --name ultra-guru",
-    "stop": "pm2 stop ultra-guru",
-    "restart": "pm2 restart ultra-guru && pm2 logs",
-    "stash": "git stash && git stash drop"
+    "stop": "pkill -f index.js || true"
   },
   "keywords": [
     "ultra-guru",
@@ -22,7 +20,7 @@
     "guruh",
     "whatsapp-md-bot"
   ],
-  "author": "GuruTech",
+  "author": "GURUTECH 😎",
   "license": "MIT",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "*",
@@ -55,7 +53,6 @@
     "path": "latest",
     "pg": "*",
     "pino": "^7.0.5",
-    "pm2": "latest",
     "qrcode-terminal": "^0.12.0",
     "sequelize": "*",
     "sharp": "0.32.6",
