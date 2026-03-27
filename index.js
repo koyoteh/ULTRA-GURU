@@ -226,62 +226,80 @@ async function startGifted() {
         setupCommandHandler(Gifted);
 
         setupConnectionHandler(Gifted, sessionDir, startGifted, {
-            onOpen: async (Gifted) => {
-                const s = await getAllSettings();
-                await safeNewsletterFollow(Gifted, BOT_CONFIG.newsletter);
-                await safeGroupAcceptInvite(Gifted, s.GC_JID);
-                await initializeLidStore(Gifted);
+    onOpen: async (Gifted) => {
+        const s = await getAllSettings();
+        await safeNewsletterFollow(Gifted, BOT_CONFIG.newsletter);
+        await safeGroupAcceptInvite(Gifted, s.GC_JID);
+        await initializeLidStore(Gifted);
 
-                setTimeout(async () => {
-                    try {
-                        const totalCommands = commands.filter(
-                            (c) => c.pattern && !c.dontAddCommandList,
-                        ).length;
-                        console.log("💜 Connected to Whatsapp, Active!");
+        setTimeout(async () => {
+            try {
+                const totalCommands = commands.filter(
+                    (c) => c.pattern && !c.dontAddCommandList,
+                ).length;
+                console.log("💜 Connected to Whatsapp, Active!");
 
-                        if (s.STARTING_MESSAGE === "true") {
-                            const d = DEFAULT_SETTINGS;
-                            const md =
-                                s.MODE === "public" ? "public" : "private";
-                            const connectionMsg = `
-*${BOT_CONFIG.name} 𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐄𝐃*
+                if (s.STARTING_MESSAGE === "true") {
+                    const d = DEFAULT_SETTINGS;
+                    const md = s.MODE === "public" ? "public" : "private";
+                    
+                    const connectionMsg = `
+                    ／l、     
+                   （ﾟ､ ｡ ７     
+                    l、 ~ヽ     
+                    じしf_,)ノ     
+        ༺༻༺༻༺༻༺༻༺༻༺༻༺༻༺༻
+        ☸     ULTRA GURU     ☸
+        ☸     CONNECTED      ☸
+        ༺༻༺༻༺༻༺༻༺༻༺༻༺༻༺༻
+        
+        ╭─────────────────────────╮
+        │                         │
+        │  🪷 BOT    : ${BOT_CONFIG.name}
+        │  🪷 OWNER  : ${BOT_CONFIG.owner}
+        │  🪷 PREFIX : ${s.PREFIX || d.PREFIX}
+        │  🪷 MODE   : ${md}
+        │  🪷 PLUGINS: ${totalCommands}
+        │  🪷 CHANNEL: ${BOT_CONFIG.newsletter}
+        │  🪷 REPO   : ${BOT_CONFIG.repo}
+        │                         │
+        ╰─────────────────────────╯
+        
+        ༺༻༺༻༺༻༺༻༺༻༺༻༺༻༺༻
+        ☸  ${s.CAPTION || d.CAPTION}  ☸
+        ༺༻༺༻༺༻༺༻༺༻༺༻༺༻༺༻
+        
+                    ／l、     
+                   （ﾟ､ ｡ ７     
+                    l、 ~ヽ     
+                    じしf_,)ノ
+`;
 
-𝐏𝐫𝐞𝐟𝐢𝐱       : *[ ${s.PREFIX || d.PREFIX} ]*
-𝐏𝐥𝐮𝐠𝐢𝐧𝐬      : *${totalCommands}*
-𝐌𝐨𝐝𝐞        : *${md}*
-𝐎𝐰𝐧𝐞𝐫       : *${BOT_CONFIG.owner}*
-𝐑𝐞𝐩𝐨𝐬𝐢𝐭𝐨𝐫𝐲   : *${BOT_CONFIG.repo}*
-𝐔𝐩𝐝𝐚𝐭𝐞𝐬      : *${s.NEWSLETTER_URL || d.NEWSLETTER_URL}*
-
-𝐍𝐨𝐭𝐞:  Bot may take some few seconds/minutes to sync before being ready to use.
-
-> *${s.CAPTION || d.CAPTION}*`;
-
-                            await Gifted.sendMessage(
-                                Gifted.user.id,
+                    await Gifted.sendMessage(
+                        Gifted.user.id,
+                        {
+                            text: connectionMsg,
+                            ...(await createContext(
+                                BOT_CONFIG.name,
                                 {
-                                    text: connectionMsg,
-                                    ...(await createContext(
-                                        BOT_CONFIG.name,
-                                        {
-                                            title: "BOT INTEGRATED",
-                                            body: "Status: Ready for Use",
-                                        },
-                                    )),
+                                    title: "BOT INTEGRATED",
+                                    body: "Status: Ready for Use",
                                 },
-                                {
-                                    disappearingMessagesInChat: true,
-                                    ephemeralExpiration: 300,
-                                },
-                            );
-                        }
-                    } catch (err) {
-                        console.error("Post-connection setup error:", err);
-                    }
-                }, 5000);
-            },
-        });
-
+                            )),
+                        },
+                        {
+                            disappearingMessagesInChat: true,
+                            ephemeralExpiration: 300,
+                        },
+                    );
+                }
+            } catch (err) {
+                console.error("Post-connection setup error:", err);
+            }
+        }, 5000);
+    },
+});
+        
         process.on("SIGINT", () => store?.destroy());
         process.on("SIGTERM", () => store?.destroy());
     } catch (error) {
