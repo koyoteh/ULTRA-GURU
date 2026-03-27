@@ -2,7 +2,7 @@ require("events").EventEmitter.defaultMaxListeners = 960;
 require("./guru/gmdHelpers");
 
 const {
-    default: giftedConnect,
+    default: guruhConnect,
     isJidGroup,
     jidNormalizedUser,
     isJidBroadcast,
@@ -10,7 +10,7 @@ const {
     downloadContentFromMessage,
     getContentType,
     fetchLatestWaWebVersion,
-} = require("gifted-baileys");
+} = require("guruh-baileys");
 
 const {
     evt,
@@ -73,7 +73,7 @@ const {
     setupConnectionHandler,
     setupGroupEventsListeners,
     initializeLidStore,
-} = require("./gift");
+} = require("./guru");
 
 const {
     saveAntiDelete,
@@ -124,7 +124,7 @@ let Gifted;
 let store;
 
 logger.level = "silent";
-app.use(express.static("gift"));
+app.use(express.static("guru"));
 app.get("/", (req, res) => res.sendFile(__dirname + "/guru/gifted.html"));
 app.get("/health", (req, res) =>
     res.status(200).json({ status: "alive", uptime: process.uptime() }),
@@ -145,8 +145,8 @@ setInterval(async () => {
     } catch (e) {}
 }, 240000);
 
-const sessionDir = path.join(__dirname, "gift", "session");
-const pluginsPath = path.join(__dirname, "gifted");
+const sessionDir = path.join(__dirname, "guru", "session");
+const pluginsPath = path.join(__dirname, "guruh");
 
 let botSettings = {};
 async function loadBotSettings() {
@@ -177,7 +177,7 @@ async function startGifted() {
             return { conversation: "Error occurred" };
         };
 
-        Gifted = giftedConnect(socketConfig);
+        Gifted = guruhConnect(socketConfig);
         store.bind(Gifted.ev);
 
         Gifted.ev.process(async (events) => {
