@@ -1,3 +1,14 @@
+// File polyfill for Node.js
+if (typeof File === 'undefined') {
+    global.File = class File extends Blob {
+        constructor(bits, name, options = {}) {
+            super(bits, options);
+            this.name = name;
+            this.lastModified = options.lastModified || Date.now();
+        }
+    };
+}
+
 // Crypto fix for Node.js
 if (!globalThis.crypto) {
     globalThis.crypto = require('crypto').webcrypto;
