@@ -76,12 +76,12 @@ function setupConsoleFilters() {
 setupConsoleFilters();
 
 const createContext = async (userJid, options = {}) => {
-    const botName = (await getSetting("BOT_NAME")) || "𝐆𝐈𝐅𝐓𝐄𝐃 𝐌𝐃";
+    const botName = (await getSetting("BOT_NAME")) || "𝐔𝐋𝐓𝐑𝐀 𝐆𝐔𝐑𝐔";
     const botPic =
         (await getSetting("BOT_PIC")) ||
-        "https://gitcdn.giftedtech.co.ke/image/AZO_image.jpg";
+        "https://files.catbox.moe/5evber.jpg";
     const newsletterJid =
-        (await getSetting("NEWSLETTER_JID")) || "120363403054496228@newsletter";
+        (await getSetting("NEWSLETTER_JID")) || "120363406466294627@newsletter";
     const newsletterUrl =
         (await getSetting("NEWSLETTER_URL")) ||
         "https://whatsapp.com/channel/0029Vb6lNd511ulWbxu1cT3A";
@@ -101,7 +101,7 @@ const createContext = async (userJid, options = {}) => {
             },
             externalAdReply: {
                 title: options.title || botName,
-                body: options.body || "Powered by GiftedTech",
+                body: options.body || "Powered by GuruTech",
                 thumbnailUrl: botPic,
                 mediaType: 1,
                 mediaUrl: options.mediaUrl || botPic,
@@ -117,9 +117,9 @@ const createContext2 = async (userJid, options = {}) => {
     const botName = (await getSetting("BOT_NAME")) || "𝐆𝐈𝐅𝐓𝐄𝐃 𝐌𝐃";
     const botPic =
         (await getSetting("BOT_PIC")) ||
-        "https://gitcdn.giftedtech.co.ke/image/AZO_image.jpg";
+        "https://files.catbox.moe/5evber.jpg";
     const newsletterJid =
-        (await getSetting("NEWSLETTER_JID")) || "120363403054496228@newsletter";
+        (await getSetting("NEWSLETTER_JID")) || "120363406466294627@newsletter";
 
     return {
         contextInfo: {
