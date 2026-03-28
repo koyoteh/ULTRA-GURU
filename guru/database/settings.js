@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS = {
     BOT_NAME: "ULTRA GURU",
     FOOTER: "Powered by GuruTech",
     CAPTION: "⚡ ULTRA GURU Premium | Ultra Fast | Ultra Secure",
-    BOT_PIC: "https://files.catbox.moe/5evber.jpg",
+    BOT_PIC: "https://files.catbox.moe/5evber.jpg?refresh=1",
     VERSION: packageJson.version || "2.0.0",
     MODE: config.MODE || "public",
     WARN_COUNT: "3",
