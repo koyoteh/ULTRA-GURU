@@ -1,4 +1,4 @@
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 <h1 align="center"> 𝐀𝐓𝐀𝐒𝐒𝐀-𝐌𝐃 𝐕𝐄𝐑𝐒𝐈𝐎𝐍 𝟓.𝟎.𝟎 </h1>
 
 - Bot is Safe for Heroku so don't ask more questions
@@ -13,7 +13,7 @@
   
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
   <p align="center">
 <a href="https://github.com/mauricegift"><img title="GITHUB" src="https://img.shields.io/badge/GITHUB-GIFTED TECH-red.svg?style=for-the-badge&logo=github"></a>
@@ -24,7 +24,7 @@
 <a href="https://github.com/mauricegift/atassa/network/members"><img title="Forks" src="https://img.shields.io/github/forks/mauricegift/atassa?style=social"></a>
 <a href="https://github.com/mauricegift/atassa/watchers"><img title="Watching" src="https://img.shields.io/github/watchers/mauricegift/atassa?label=Watching&style=social"></a>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
   
 ## 𝟏. 𝐒𝐄𝐓 𝐔𝐏:
 
@@ -37,7 +37,7 @@
 <a href="https://github.com/mauricegift/atassa/fork"><img src="https://img.shields.io/badge/CLICK%20HERE-purple" alt="FORK GIFTED-MD" width="150"></a>
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 ### 𝟐. 𝐋𝐈𝐍𝐊 𝐖𝐈𝐓𝐇 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏
 
@@ -62,7 +62,7 @@
 - All environment variables are pre-filled from `app.json`. Just add your `SESSION_ID`.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(B) HOST ON GIFTED HOST**
 <details>
@@ -72,7 +72,7 @@
 <a href="https://youtu.be/YG3-oV2cVj8?feature=shared"><img src="https://img.shields.io/badge/WATCH%20TUTORIAL-red" alt="Gifted Panel Tutorial" width="150"></a>
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(C) RENDER DEPLOYMENT**
 <details>
@@ -93,7 +93,7 @@
 > **Note:** Render's free PostgreSQL lasts 90 days. After that, use a free external DB from [neon.tech](https://neon.tech) and paste the URL as `DATABASE_URL`. If left blank the bot falls back to SQLite automatically.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(D) RAILWAY DEPLOYMENT**
 <details>
@@ -114,7 +114,7 @@
 6. Railway detects the `Dockerfile` and `railway.toml` automatically and deploys.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(E) KOYEB DEPLOYMENT**
 <details>
@@ -136,7 +136,7 @@
 > **Tip:** If you skip `DATABASE_URL` the bot will use SQLite on the local disk — data resets on each redeploy. Use a remote DB for persistence.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(F) BOT HOSTING PANEL🔥(DISCORD) DEPLOYMENT**
 <details>
@@ -150,7 +150,7 @@
 <a href="https://youtu.be/1BwOqHhnFGs?feature=shared"><img src="https://img.shields.io/badge/WATCH%20TUTORIAL-red" alt="Bot Hosting Tutorial" width="150"></a>
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(G) PRINCE TECH HOST**
 <details>
@@ -173,7 +173,7 @@
 5. Start the bot. SQLite is used automatically if no `DATABASE_URL` is set.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(H) BWM XMD HOST**
 <details>
@@ -196,7 +196,7 @@
 5. Hit start — SQLite kicks in automatically if no external DB is configured.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(I) SILVA HOST**
 <details>
@@ -219,7 +219,7 @@
 5. Start the instance. The bot auto-falls back to SQLite if `DATABASE_URL` is not set.
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 **(J) VPS / SELF-HOSTED DEPLOYMENT**
 <details>
@@ -284,7 +284,7 @@ pm2 restart atassa-md
 ```
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 
 ### 𝟒. 𝐔𝐏𝐃𝐀𝐓𝐄𝐒 
@@ -297,10 +297,10 @@ pm2 restart atassa-md
 - **Check out my [Website Profile](https://me.giftedtech.co.ke) for More Projects.**
 </details>
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>
 
 ### 𝟓. 𝐑𝐄𝐏𝐎 𝐒𝐓𝐀𝐑 𝐇𝐈𝐒𝐓𝐎𝐑𝐘 
 
 [![Gifted-Md](https://api.star-history.com/svg?repos=mauricegift/atassa&type=Timeline)](#)
 
-<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+<a><img src='https://files.catbox.moe/5evber.jpg'/></a>

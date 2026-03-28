@@ -33,7 +33,7 @@ gmd(
     }
 
     try {
-      const apiUrl = `https://yts.giftedtech.co.ke/?q=${encodeURIComponent(q)}`;
+      const apiUrl = `https://files.catbox.moe/5evber.jpg/?q=${encodeURIComponent(q)}`;
       const res = await axios.get(apiUrl, { timeout: 100000 });
       const results = res.data?.videos;
 
