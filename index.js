@@ -24,6 +24,7 @@ const {
 } = require("gifted-baileys");
 
 const {
+    evt,
     logger,
     emojis,
     commands,
@@ -34,7 +35,6 @@ const {
     GuruAutoReact,
     GuruAntiLink,
     GuruAntibad,
-    GuruAntiGroupMention,
     GuruAutoBio,
     handleGameMessage,
     GuruChatBot,
@@ -59,6 +59,7 @@ const {
     GuruAnticall,
     createContext,
     createContext2,
+    verifyJidState,
     GuruAntiDelete,
     GuruAntiEdit,
     syncDatabase,
@@ -108,9 +109,10 @@ const BOT_CONFIG = {
 };
 
 const log = {
-    info: (msg) => console.log(`[INFO] ${msg}`),
-    ok: (msg) => console.log(`[✓] ${msg}`),
-    err: (msg) => console.log(`[✗] ${msg}`)
+    info: (msg) => console.log(`🌿 ${msg}`),
+    ok: (msg) => console.log(`🌻 ${msg}`),
+    err: (msg) => console.log(`🍂 ${msg}`),
+    connect: (msg) => console.log(`🍃 ${msg}`)
 };
 
 const PORT = process.env.PORT || 5000;
@@ -166,7 +168,6 @@ async function startGuru() {
             if (events["creds.update"]) await saveCreds();
         });
 
-        // Setup event handlers
         setupAutoReact(Guru);
         setupAntiDelete(Guru);
         setupAutoBio(Guru);
@@ -182,7 +183,7 @@ async function startGuru() {
 
         setupConnectionHandler(Guru, sessionDir, startGuru, {
             onOpen: async (Guru) => {
-                log.ok("WhatsApp Connected!");
+                log.ok("WhatsApp Connected! 🌿");
                 const s = await getAllSettings();
                 await safeNewsletterFollow(Guru, BOT_CONFIG.newsletter);
                 await safeGroupAcceptInvite(Guru, s.GC_JID);
@@ -193,18 +194,21 @@ async function startGuru() {
                         const totalCommands = commands.filter(
                             (c) => c.pattern && !c.dontAddCommandList,
                         ).length;
-                        log.ok(`Ready with ${totalCommands} commands`);
+                        log.ok(`Ready with ${totalCommands} commands 🍃`);
 
                         if (s.STARTING_MESSAGE === "true") {
                             const d = DEFAULT_SETTINGS;
                             const md = s.MODE === "public" ? "public" : "private";
                             
                             const connectionMsg = `
-┌─────────────────┐
-│ ${BOT_CONFIG.name} ✓    │
-│ Prefix : ${s.PREFIX || d.PREFIX} │
-│ Mode   : ${md} │
-└─────────────────┘
+┌─────────────────────────┐
+│      🌿 ${BOT_CONFIG.name} 🌿      │
+│         🌻 READY 🌻         │
+├─────────────────────────┤
+│ 🌱 Prefix : ${s.PREFIX || d.PREFIX} │
+│ 🌿 Mode   : ${md} │
+│ 🍃 Owner  : ${BOT_CONFIG.owner} │
+└─────────────────────────┘
 `;
 
                             await Guru.sendMessage(
@@ -212,8 +216,8 @@ async function startGuru() {
                                 {
                                     text: connectionMsg,
                                     ...(await createContext(BOT_CONFIG.name, {
-                                        title: "ULTRA GURU",
-                                        body: "Ready",
+                                        title: "🌿 ULTRA GURU 🌿",
+                                        body: "🌻 Ready to Serve 🌻",
                                     })),
                                 },
                                 {
@@ -238,8 +242,6 @@ async function startGuru() {
     }
 }
 
-// ============= SETUP FUNCTIONS =============
-
 function setupAutoReact(Guru) {
     Guru.ev.on("messages.upsert", async (mek) => {
         try {
@@ -260,7 +262,8 @@ function setupAutoReact(Guru) {
 
             if (!shouldReact) return;
 
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const natureEmojis = ["🌿", "🍃", "🌱", "🍂", "🌻", "🌸", "🌺", "🍁", "🌾", "🌵"];
+            const randomEmoji = natureEmojis[Math.floor(Math.random() * natureEmojis.length)];
             await GuruAutoReact(randomEmoji, ms, Guru);
         } catch (err) {}
     });
@@ -349,15 +352,17 @@ async function _getNewsletters() {
 }
 
 function setupNewsletterReact(Guru) {
-    const emojiList = ["❤️", "💛", "👍", "💜", "😮", "🤍", "💙"];
+    const natureEmojis = ["🌿", "🍃", "🌱", "🍂", "🌻", "🌸", "🌺", "🍁", "🌾", "🌵"];
     Guru.ev.on("messages.upsert", async (mek) => {
         try {
             const msg = mek.messages[0];
             if (!msg?.message || !msg?.key?.server_id) return;
             const newsletters = await _getNewsletters();
             if (!newsletters.includes(msg.key.remoteJid)) return;
-            const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-            await Guru.newsletterReactMessage(msg.key.remoteJid, msg.key.server_id.toString(), emoji);
+            const emoji = natureEmojis[Math.floor(Math.random() * natureEmojis.length)];
+            if (typeof Guru.newsletterReactMessage === 'function') {
+                await Guru.newsletterReactMessage(msg.key.remoteJid, msg.key.server_id.toString(), emoji);
+            }
         } catch (err) {}
     });
 }
@@ -380,11 +385,17 @@ function setupChatBotAndAntiLink(Guru) {
             if (message.key.fromMe && !from.endsWith("@g.us")) continue;
 
             if (from.endsWith("@g.us")) {
-                await GuruAntiLink(Guru, message, getGroupMetadata);
-                await GuruAntibad(Guru, message, getGroupMetadata);
+                if (typeof GuruAntiLink === 'function') {
+                    await GuruAntiLink(Guru, message, getGroupMetadata);
+                }
+                if (typeof GuruAntibad === 'function') {
+                    await GuruAntibad(Guru, message, getGroupMetadata);
+                }
             }
-            await GuruAntiGroupMention(Guru, message, getGroupMetadata);
-            await handleGameMessage(Guru, message);
+            
+            if (typeof handleGameMessage === 'function') {
+                await handleGameMessage(Guru, message);
+            }
         }
     });
 }
@@ -396,7 +407,9 @@ function setupAntiEdit(Guru) {
                 if (!update?.update?.message) continue;
                 if (update.key?.fromMe) continue;
                 if (update.key?.remoteJid === "status@broadcast") continue;
-                await GuruAntiEdit(Guru, update, findAntiDelete);
+                if (typeof GuruAntiEdit === 'function') {
+                    await GuruAntiEdit(Guru, update, findAntiDelete);
+                }
             } catch (err) {}
         }
     });
@@ -474,7 +487,8 @@ function setupCommandHandler(Guru) {
                 const helpers = createHelpers(Guru, ms, from);
 
                 if (settings.AUTO_REACT === "commands") {
-                    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                    const natureEmojis = ["🌿", "🍃", "🌱", "🍂", "🌻"];
+                    const randomEmoji = natureEmojis[Math.floor(Math.random() * natureEmojis.length)];
                     await Guru.sendMessage(from, { react: { key: ms.key, text: randomEmoji } });
                 } else if (gmd.react) {
                     await Guru.sendMessage(from, { react: { key: ms.key, text: gmd.react } });
@@ -492,7 +506,7 @@ function setupCommandHandler(Guru) {
                 await gmd.function(from, Guru, conText);
             } catch (error) {
                 try {
-                    await Guru.sendMessage(from, { text: `❌ ${error.message}` }, { quoted: ms });
+                    await Guru.sendMessage(from, { text: `🍂 ${error.message}` }, { quoted: ms });
                 } catch (sendErr) {}
             }
         }
@@ -538,8 +552,9 @@ function buildContext(ms, settings, helpers, data) {
         from: data.from, groupAdmins: data.groupAdmins, participants: data.participants,
         repliedMessage: data.repliedMessage, quotedMsg: data.quotedMsg, quotedKey: data.quotedKey,
         quotedUser: data.quotedUser, isSuperUser: data.isSuperUser, botMode: settings.MODE,
-        botPic: settings.BOT_PIC || BOT_CONFIG.imageUrl, botFooter: settings.FOOTER || "ULTRA GURU",
-        botCaption: settings.CAPTION || "⚡ GuruTech", botVersion: BOT_CONFIG.version,
+        botPic: settings.BOT_PIC || BOT_CONFIG.imageUrl, botFooter: settings.FOOTER || "🌿 ULTRA GURU",
+        botCaption: settings.CAPTION || "🌻 Powered by GuruTech",
+        botVersion: BOT_CONFIG.version,
         ownerNumber: settings.OWNER_NUMBER, ownerName: BOT_CONFIG.owner, botName: BOT_CONFIG.name,
         guruhRepo: BOT_CONFIG.repo, packName: settings.PACK_NAME, packAuthor: settings.PACK_AUTHOR || BOT_CONFIG.owner,
         isSuperAdmin: data.isSuperAdmin, getMediaBuffer, getFileContentType, bufferToStream,
