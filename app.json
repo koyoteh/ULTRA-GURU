@@ -1,42 +1,53 @@
 {
-  "name": "ULTRA GURU",
-  "version": "2.0.0",
-  "description": "ULTRA GURU Premium WhatsApp Bot | Powered by GuruTech",
+  "name": "ULTRA GURU MD",
+  "description": "GURUTECH 😎 - Ultimate WhatsApp Bot by GuruTech",
   "logo": "https://files.catbox.moe/5evber.jpg",
-  "keywords": ["ultra-guru", "whatsapp-bot", "gurutech"],
-  "success_url": "/",
-  "stack": "heroku-22",
+  "keywords": ["whatsapp", "bot", "gurutech", "ultra-guru", "md"],
+  "repository": "https://github.com/GuruhTech/ULTRA-GURU",
   "env": {
     "SESSION_ID": {
-      "description": "Your bot SESSION_ID",
+      "description": "Your WhatsApp session ID",
       "required": true,
       "value": ""
     },
+    "BOT_NAME": {
+      "description": "Bot display name",
+      "required": false,
+      "value": "ULTRA GURU"
+    },
+    "OWNER_NAME": {
+      "description": "Owner name",
+      "required": false,
+      "value": "GURUTECH 😎"
+    },
     "MODE": {
-      "description": "Worktype: public or private",
-      "required": true,
+      "description": "Bot mode (public/private)",
+      "required": false,
       "value": "public"
     },
-    "PREFIX": {
-      "description": "Command prefix",
+    "TIME_ZONE": {
+      "description": "Your time zone",
       "required": false,
-      "value": "."
+      "value": "Africa/Nairobi"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
     }
   },
   "addons": [
     {
       "plan": "heroku-postgresql:essential-0",
-      "as": "DATABASE"
+      "options": {
+        "version": "15"
+      }
     }
   ],
   "buildpacks": [
-    { "url": "heroku/nodejs" },
-    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest" }
-  ],
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "basic"
+    {
+      "url": "heroku/nodejs"
     }
-  }
+  ]
 }

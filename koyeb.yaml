@@ -1,4 +1,4 @@
-deploymentname: atassa-md
+deploymentname: ultra-guru-md
 
 services:
   - name: web
@@ -31,6 +31,14 @@ services:
         value: ""
         scopes:
           - region:was
+      - key: BOT_NAME
+        value: "ULTRA GURU"
+        scopes:
+          - region:was
+      - key: OWNER_NAME
+        value: "GURUTECH 😎"
+        scopes:
+          - region:was
       - key: MODE
         value: public
         scopes:
@@ -51,6 +59,10 @@ services:
         value: ""
         scopes:
           - region:was
+      - key: NODE_VERSION
+        value: "18.20.8"
+        scopes:
+          - region:was
 
 # ─────────────────────────────────────────────────────────────
 # SETUP INSTRUCTIONS (Koyeb)
@@ -66,5 +78,5 @@ services:
 # 3. Set SESSION_ID to your Gifted~ session ID.
 # 4. Deploy via Koyeb dashboard → "Create App" → "GitHub" → pick repo,
 #    or use the Koyeb CLI:
-#      koyeb app init atassa-md --config koyeb.yaml
+#      koyeb app init ultra-guru-md --config koyeb.yaml
 # ─────────────────────────────────────────────────────────────
