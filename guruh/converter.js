@@ -1,3 +1,4 @@
+
 const { gmd, toAudio, toVideo, toPtt, stickerToImage, gmdFancy, gmdRandom, getSetting, runFFmpeg, getVideoDuration, gmdSticker } = require("../guru");
 const fs = require("fs").promises;
 const { StickerTypes } = require("wa-sticker-formatter");
