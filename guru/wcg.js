@@ -47,3 +47,4 @@ module.exports = {
     formatScores,
     getDiceEmoji,
 };
+
