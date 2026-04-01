@@ -25,9 +25,9 @@ async function queryAI(endpoint, query, conText) {
 
 gmd(
   {
-    pattern: "giftedai",
+    pattern: "guruai",
     aliases: ["ai"],
-    description: "Chat with Gifted AI assistant",
+    description: "Chat with Guru AI assistant",
     category: "Ai",
     filename: __filename,
   },
