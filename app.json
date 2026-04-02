@@ -1,5 +1,5 @@
 {
-  "name": "ultra-guru-md",
+  "name": "ULTRA GURU MD",
   "version": "5.0.0",
   "description": "ULTRA GURU - A Powerful Multi-Device WhatsApp Bot built by GURUTECH 😎 to Enhance Your WhatsApp Experience",
   "logo": "https://files.catbox.moe/5evber.jpg",
@@ -61,7 +61,7 @@
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "free"
+      "size": "basic"
     }
   },
   "environments": {
