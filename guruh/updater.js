@@ -33,6 +33,11 @@ gmd(
         try {
             await reply("🔍 Checking for New Updates...");
 
+            // Check if giftedRepo is set to your repository
+            if (!giftedRepo || giftedRepo !== "GuruhTech/ULTRA-GURU") {
+                return reply("❌ Please set correct repository in settings!\nRepository should be: GuruhTech/ULTRA-GURU");
+            }
+
             const { data: commitData } = await axios.get(
                 `https://api.github.com/repos/${giftedRepo}/commits/main`,
             );
@@ -55,7 +60,9 @@ gmd(
                 `🔄 Updating Bot...\n\n*Commit Details:*\n👤 Author: ${authorName} (${authorEmail})\n📅 Date: ${commitDate}\n💬 Message: ${commitMessage}`,
             );
 
-            const zipPath = path.join(__dirname, "..", "ULTRA-GURU-main.zip");
+            // Get the repo name from giftedRepo (ULTRA-GURU)
+            const repoName = giftedRepo.split("/")[1];
+            const zipPath = path.join(__dirname, "..", `${repoName}-main.zip`);
             const { data: zipData } = await axios.get(
                 `https://github.com/${giftedRepo}/archive/main.zip`,
                 { responseType: "arraybuffer" },
@@ -66,7 +73,8 @@ gmd(
             const zip = new AdmZip(zipPath);
             zip.extractAllTo(extractPath, true);
 
-            const sourcePath = path.join(extractPath, "ULTRA-GURU-main");
+            // Source path after extraction (ULTRA-GURU-main)
+            const sourcePath = path.join(extractPath, `${repoName}-main`);
             const destinationPath = path.join(__dirname, "..");
 
             const excludeList = [
@@ -89,7 +97,7 @@ gmd(
         } catch (error) {
             console.error("Update error:", error);
             return reply(
-                "❌ Update Failed. Please try by Redeploying Manually.",
+                "❌ Update Failed. Please try by Redeploying Manually.\nError: " + error.message,
             );
         }
     },
