@@ -1,4 +1,4 @@
-const { gmd, commands, monospace, formatBytes } = require("../guru"),
+const { gmd, commands, monospace, formatBytes } = require("../gift"),
   fs = require("fs"),
   axios = require("axios"),
   BOT_START_TIME = Date.now(),
@@ -6,7 +6,7 @@ const { gmd, commands, monospace, formatBytes } = require("../guru"),
   moment = require("moment-timezone"),
   more = String.fromCharCode(8206),
   readmore = more.repeat(4001),
-  ram = `${formatBytes(freeMemoryBytes)}/${formatBytes(totalMemoryBytes)}`;
+  ram = `\( {formatBytes(freeMemoryBytes)}/ \){formatBytes(totalMemoryBytes)}`;
 const { sendButtons } = require("gifted-btns");
 
 gmd(
@@ -179,7 +179,7 @@ gmd(
 *🍁 Dᴀᴛᴇ Tᴏᴅᴀʏ:* ${monospace(date)}
 *🎗 Tɪᴍᴇ Nᴏᴡ:* ${monospace(time)}
 
-➮Fᴏᴜɴᴅᴇʀ - Gifted Tech
+➮Fᴏᴜɴᴅᴇʀ - GuruTech
 ➮Usᴇʀ - ${monospace(pushName)}
 ➮Nᴜᴍ - ${monospace(ownerNumber)} 
 ➮Mᴇᴍᴏʀʏ - ${monospace(ram)}
@@ -278,18 +278,19 @@ gmd(
       ).length;
 
       let list = `
-╭━━〔 *${monospace(botName)}* 〕━━╮
-│ ✦ *Mᴏᴅᴇ* : ${monospace(botMode)}
-│ ✦ *Pʀᴇғɪx* : [ ${monospace(botPrefix)} ]
-│ ✦ *Usᴇʀ* : ${monospace(pushName)}
-│ ✦ *Pʟᴜɢɪɴs* : ${monospace(totalCommands.toString())}
-│ ✦ *Vᴇʀsɪᴏɴ* : ${monospace(botVersion)}
-│ ✦ *Uᴘᴛɪᴍᴇ* : ${monospace(uptime)}
-│ ✦ *Tɪᴍᴇ Nᴏᴡ* : ${monospace(time)}
-│ ✦ *Dᴀᴛᴇ Tᴏᴅᴀʏ* : ${monospace(date)}
-│ ✦ *Tɪᴍᴇ Zᴏɴᴇ* : ${monospace(timeZone)}
-│ ✦ *Sᴇʀᴠᴇʀ Rᴀᴍ* : ${monospace(ram)}
-╰─────────────╯${readmore}\n`;
+✧━ *ULTRA GURU MD* ━✧
+┏━━━━━━━━━━━━━━━━━━┓
+┃ 🌟 *Mode*     : ${monospace(botMode)}
+┃ ⚡ *Prefix*   : ${monospace(botPrefix)}
+┃ 👤 *User*     : ${monospace(pushName)}
+┃ 📊 *Plugins*  : ${monospace(totalCommands.toString())}
+┃ 📌 *Version*  : ${monospace(botVersion)}
+┃ ⏳ *Uptime*   : ${monospace(uptime)}
+┃ 🕒 *Time*     : ${monospace(time)}
+┃ 📅 *Date*     : ${monospace(date)}
+┃ 🌍 *Zone*     : ${monospace(timeZone)}
+┃ 💾 *Ram*      : ${monospace(ram)}
+┗━━━━━━━━━━━━━━━━━━┛${readmore}\n`;
 
       commands.forEach((gmd, index) => {
         if (gmd.pattern && gmd.description) {
@@ -394,29 +395,31 @@ gmd(
         categorized[cat].sort((a, b) => a.pattern.localeCompare(b.pattern));
       }
 
-      let header = `╭══〘〘 *${monospace(botName)}* 〙〙═⊷
-┃❍ *Mᴏᴅᴇ:*  ${monospace(botMode)}
-┃❍ *Pʀᴇғɪx:*  [ ${monospace(botPrefix)} ]
-┃❍ *Usᴇʀ:*  ${monospace(pushName)}
-┃❍ *Pʟᴜɢɪɴs:*  ${monospace(totalCommands.toString())}
-┃❍ *Vᴇʀsɪᴏɴ:*  ${monospace(botVersion)}
-┃❍ *Uᴘᴛɪᴍᴇ:*  ${monospace(uptime)}
-┃❍ *Tɪᴍᴇ Nᴏᴡ:*  ${monospace(time)}
-┃❍ *Dᴀᴛᴇ Tᴏᴅᴀʏ:*  ${monospace(date)}
-┃❍ *Tɪᴍᴇ Zᴏɴᴇ:*  ${monospace(timeZone)}
-┃❍ *Sᴇʀᴠᴇʀ Rᴀᴍ:*  ${monospace(ram)}
-╰═════════════════⊷\n${readmore}\n`;
+      let header = `
+✧━ *ULTRA GURU MD* ━✧
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 🌟 *Mode*      : ${monospace(botMode)}
+┃ ⚡ *Prefix*    : ${monospace(botPrefix)}
+┃ 👤 *User*      : ${monospace(pushName)}
+┃ 📊 *Plugins*   : ${monospace(totalCommands.toString())}
+┃ 📌 *Version*   : ${monospace(botVersion)}
+┃ ⏳ *Uptime*    : ${monospace(uptime)}
+┃ 🕒 *Time*      : ${monospace(time)}
+┃ 📅 *Date*      : ${monospace(date)}
+┃ 🌍 *Zone*      : ${monospace(timeZone)}
+┃ 💾 *Ram*       : ${monospace(ram)}
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛${readmore}\n`;
 
       const formatCategory = (category, gmds) => {
-        const title = `╭━━━━❮ *${monospace(category.toUpperCase())}* ❯━⊷ \n`;
+        const title = `✦━━ *${monospace(category.toUpperCase())}* ━━✦\n`;
         const body = gmds
           .map((gmd) => {
             const prefix = gmd.isBody ? "" : botPrefix;
-            return `┃◇ ${monospace(prefix + gmd.pattern)}`;
+            return `◉ ${monospace(prefix + gmd.pattern)}`;
           })
           .join("\n");
-        const footer = `╰━━━━━━━━━━━━━━━━━⊷\n`;
-        return `${title}${body}\n${footer}\n`;
+        const footer = `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        return `\( {title} \){body}\n${footer}\n`;
       };
 
       let menu = header;
@@ -426,7 +429,7 @@ gmd(
 
       const giftedMess = {
         image: { url: botPic },
-        caption: `${menu.trim()}\n\n> *${botFooter}*`,
+        caption: `\( {menu.trim()}\n\n> * \){botFooter}*`,
         contextInfo: {
           mentionedJid: [sender],
           forwardingScore: 5,
@@ -612,7 +615,7 @@ gmd(
       updated_at,
       owner,
     } = repoData;
-    const messageText = `Hello *_${pushName}_,*\nThis is *${botName},* A Whatsapp Bot Built by *${ownerName},* Enhanced with Amazing Features to Make Your Whatsapp Communication and Interaction Experience Amazing\n\n*❲❒❳ ɴᴀᴍᴇ:* ${name}\n*❲❒❳ sᴛᴀʀs:* ${stargazers_count}\n*❲❒❳ ғᴏʀᴋs:* ${forks_count}\n*❲❒❳ ᴄʀᴇᴀᴛᴇᴅ ᴏɴ:* ${new Date(created_at).toLocaleDateString()}\n*❲❒❳ ʟᴀsᴛ ᴜᴘᴅᴀᴛᴇᴅ:* ${new Date(updated_at).toLocaleDateString()}`;
+    const messageText = `Hello *_\( {pushName}_,*\nThis is * \){botName},* A Whatsapp Bot Built by *${ownerName},* Enhanced with Amazing Features to Make Your Whatsapp Communication and Interaction Experience Amazing\n\n*❲❒❳ ɴᴀᴍᴇ:* ${name}\n*❲❒❳ sᴛᴀʀs:* ${stargazers_count}\n*❲❒❳ ғᴏʀᴋs:* ${forks_count}\n*❲❒❳ ᴄʀᴇᴀᴛᴇᴅ ᴏɴ:* ${new Date(created_at).toLocaleDateString()}\n*❲❒❳ ʟᴀsᴛ ᴜᴘᴅᴀᴛᴇᴅ:* ${new Date(updated_at).toLocaleDateString()}`;
 
     const dateNow = Date.now();
     await sendButtons(Gifted, from, {
@@ -859,7 +862,7 @@ gmd(
 
       let picUrl = null;
       try {
-        const apiUrl = `${GiftedTechApi}/api/stalk/wachannel?apikey=${GiftedApiKey}&url=${encodeURIComponent(channelUrl)}`;
+        const apiUrl = `\( {GiftedTechApi}/api/stalk/wachannel?apikey= \){GiftedApiKey}&url=${encodeURIComponent(channelUrl)}`;
         const apiRes = await axios.get(apiUrl, { timeout: 10000 });
         picUrl = apiRes.data?.result?.img || null;
       } catch (apiErr) {
@@ -873,7 +876,7 @@ gmd(
         if (trimmed.length > MAX_DESC) {
           const visible = trimmed.slice(0, MAX_DESC);
           const hidden = trimmed.slice(MAX_DESC);
-          descSection = `\n\n📄 *Description:*\n${visible}${readmore}${hidden}`;
+          descSection = `\n\n📄 *Description:*\n\( {visible} \){readmore}${hidden}`;
         } else {
           descSection = `\n\n📄 *Description:*\n${trimmed}`;
         }
