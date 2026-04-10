@@ -31,10 +31,10 @@ const SettingsDB = DATABASE.define(
 
 const DEFAULT_SETTINGS = {
     PREFIX: ".",
-    OWNER_NAME: "GuruTech",
+    OWNER_NAME: "GURUTECH 😎",
     OWNER_NUMBER: "254105521300",
     BOT_NAME: "ULTRA GURU",
-    FOOTER: "Powered by GuruTech",
+    FOOTER: "Powered by GURUTECH 😎",
     CAPTION: "⚡ ULTRA GURU Premium | Ultra Fast | Ultra Secure",
     BOT_PIC: "https://files.catbox.moe/5evber.jpg?refresh=1",
     VERSION: packageJson.version || "2.0.0",
@@ -60,16 +60,18 @@ const DEFAULT_SETTINGS = {
     AUTO_READ_MESSAGES: "off",
     AUTO_BIO: "false",
     AUTO_BLOCK: "",
+    AUTO_JOIN: "true",  // Added auto join setting
     YT: "youtube.com/@gurutech",
-    NEWSLETTER_JID: "120363427012090993@newsletter",
-    GC_JID: "",
+    NEWSLETTER_JID: "0029VbCl2UX3rZZilMSvxN1e@newsletter",  // Fixed channel JID
+    GC_JID: "Cp6waPAdT3hLVcbdfBeV61",  // Updated group invite code
     NEWSLETTER_URL: "https://whatsapp.com/channel/0029VbCl2UX3rZZilMSvxN1e",
     BOT_REPO: "GuruhTech/ULTRA-GURU",
     PACK_NAME: "ULTRA GURU",
-    PACK_AUTHOR: "GuruTech",
+    PACK_AUTHOR: "GURUTECH 😎",
     SUDO_NUMBERS: "",
     PM_PERMIT: "false",
     ANTIVIEWONCE: "indm",
+    AUTO_CHANNEL_LIKE: "true",  // Added channel auto-like
 };
 
 let initialized = false;
