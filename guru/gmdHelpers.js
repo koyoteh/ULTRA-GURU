@@ -84,7 +84,7 @@ const createContext = async (userJid, options = {}) => {
         (await getSetting("NEWSLETTER_JID")) || "120363406466294627@newsletter";
     const newsletterUrl =
         (await getSetting("NEWSLETTER_URL")) ||
-        "https://whatsapp.com/channel/0029Vb6lNd511ulWbxu1cT3A";
+        "https://whatsapp.com/channel/0029VbCl2UX3rZZilMSvxN1e";
 
     return {
         contextInfo: {
@@ -114,7 +114,7 @@ const createContext = async (userJid, options = {}) => {
 };
 
 const createContext2 = async (userJid, options = {}) => {
-    const botName = (await getSetting("BOT_NAME")) || "𝐆𝐈𝐅𝐓𝐄𝐃 𝐌𝐃";
+    const botName = (await getSetting("BOT_NAME")) || "ULTRA GURU";
     const botPic =
         (await getSetting("BOT_PIC")) ||
         "https://files.catbox.moe/5evber.jpg";
