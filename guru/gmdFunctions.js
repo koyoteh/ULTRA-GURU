@@ -1,4 +1,3 @@
-
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -18,11 +17,336 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const { Readable } = require('stream');
 ffmpeg.setFfmpegPath(ffmpegPath);
+const readline = require('readline');
 
 const sessionDir = path.join(__dirname, "session");
 const sessionPath = path.join(sessionDir, "creds.json");
 
+// ============ HOST DETECTION ============
+function detectHostEnvironment() {
+    if (process.env.PTERODACTYL || process.env.PANEL) return 'pterodactyl';
+    if (process.env.KOYEB) return 'koyeb';
+    if (process.env.RENDER) return 'render';
+    if (process.env.HEROKU || process.env.DYNO) return 'heroku';
+    if (process.env.RAILWAY) return 'railway';
+    if (process.env.REPL_ID || process.env.REPL_OWNER) return 'replit';
+    if (require('os').platform() !== 'win32' && !process.env.PANEL) return 'vps';
+    return 'unknown';
+}
 
+// ============ PROMPT USER FOR INPUT (PANEL MODE) ============
+function createPrompt() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    return rl;
+}
+
+async function promptUserForSession() {
+    const rl = createPrompt();
+    
+    console.log(`
+╔══════════════════════════════════════════════════════════════════╗
+║                    📱 ULTRA GURU BOT SETUP                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Please choose how you want to connect:                         ║
+║                                                                  ║
+║  ┌────────────────────────────────────────────────────────────┐  ║
+║  │  OPTION 1: PHONE NUMBER (Pairing Code)                     │  ║
+║  │  • Enter your phone number with country code               │  ║
+║  │  • Bot will generate an 8-digit pairing code               │  ║
+║  │  • Enter code in WhatsApp → Linked Devices                 │  ║
+║  └────────────────────────────────────────────────────────────┘  ║
+║                                                                  ║
+║  ┌────────────────────────────────────────────────────────────┐  ║
+║  │  OPTION 2: EXISTING SESSION ID                             │  ║
+║  │  • Paste your existing session ID                          │  ║
+║  │  • Bot will load session directly                          │  ║
+║  └────────────────────────────────────────────────────────────┘  ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+    `);
+    
+    return new Promise((resolve) => {
+        rl.question("Enter 1 for Phone Number (Pairing) or 2 for Session ID: ", async (choice) => {
+            if (choice === '1') {
+                rl.question("📱 Enter your phone number with country code (e.g., 254XXXXXXXXX): ", async (phoneNumber) => {
+                    const cleanedPhone = phoneNumber.replace(/[^0-9]/g, '');
+                    if (cleanedPhone.length < 10) {
+                        console.log("❌ Invalid phone number format!");
+                        rl.close();
+                        resolve(null);
+                    } else {
+                        console.log(`✅ Pairing mode selected for: ${cleanedPhone}`);
+                        rl.close();
+                        resolve({ type: 'pairing', value: cleanedPhone });
+                    }
+                });
+            } else if (choice === '2') {
+                rl.question("🔐 Paste your session ID (must start with GURU~ or Gifted~): ", async (sessionId) => {
+                    if (!sessionId.startsWith('GURU~') && !sessionId.startsWith('Gifted~')) {
+                        console.log("❌ Invalid session ID format! Must start with GURU~ or Gifted~");
+                        rl.close();
+                        resolve(null);
+                    } else {
+                        console.log("✅ Session ID provided");
+                        rl.close();
+                        resolve({ type: 'session', value: sessionId });
+                    }
+                });
+            } else {
+                console.log("❌ Invalid choice! Please enter 1 or 2.");
+                rl.close();
+                resolve(null);
+            }
+        });
+    });
+}
+
+// ============ SESSION LOADER (NO EXTERNAL SERVER) ============
+let pendingPairingNumber = null;
+let isPairingMode = false;
+
+async function loadSession() {
+    const hostEnv = detectHostEnvironment();
+    console.log(`🖥️ Detected Environment: ${hostEnv.toUpperCase()}`);
+    
+    try {
+        // Clear old session files
+        if (fs.existsSync(sessionDir)) {
+            const allFiles = fs.readdirSync(sessionDir);
+            allFiles.forEach(f => {
+                try { fs.unlinkSync(path.join(sessionDir, f)); } catch (e) {}
+            });
+        }
+
+        let sessionId = config.SESSION_ID;
+        
+        // ============ HEROKU MODE ============
+        if (hostEnv === 'heroku') {
+            console.log("☁️ Heroku mode detected - reading from environment variables");
+            
+            if (!sessionId || typeof sessionId !== 'string') {
+                throw new Error("❌ SESSION_ID is missing in Heroku environment variables");
+            }
+            
+            // Check if pairing mode is requested on Heroku
+            if (sessionId.startsWith('PAIR:')) {
+                const phoneNumber = sessionId.replace('PAIR:', '').trim();
+                console.log(`📱 Pairing mode activated for: ${phoneNumber}`);
+                isPairingMode = true;
+                pendingPairingNumber = phoneNumber;
+                return true;
+            }
+            
+            // Normal session loading on Heroku
+            return await processSessionId(sessionId);
+        }
+        
+        // ============ PANEL MODE (Pterodactyl, Koyeb, Render, VPS, etc.) ============
+        console.log("🖥️ Panel/VPS mode detected - interactive setup");
+        
+        // Check if SESSION_ID is already set in environment
+        if (sessionId && sessionId !== '') {
+            console.log("📦 SESSION_ID found in environment variables");
+            
+            if (sessionId.startsWith('PAIR:')) {
+                const phoneNumber = sessionId.replace('PAIR:', '').trim();
+                console.log(`📱 Pairing mode activated for: ${phoneNumber}`);
+                isPairingMode = true;
+                pendingPairingNumber = phoneNumber;
+                return true;
+            }
+            
+            return await processSessionId(sessionId);
+        }
+        
+        // No SESSION_ID set - prompt user
+        const userChoice = await promptUserForSession();
+        
+        if (!userChoice) {
+            throw new Error("❌ No valid option selected. Please restart the bot.");
+        }
+        
+        if (userChoice.type === 'pairing') {
+            console.log(`📱 Pairing mode activated for: ${userChoice.value}`);
+            isPairingMode = true;
+            pendingPairingNumber = userChoice.value;
+            return true;
+        } else {
+            return await processSessionId(userChoice.value);
+        }
+        
+    } catch (e) {
+        console.error("❌ Session Error:", e.message);
+        throw e;
+    }
+}
+
+async function processSessionId(sessionId) {
+    try {
+        // Support both Gifted~ and GURU~ formats
+        const isValidFormat = sessionId.startsWith('Gifted~') || sessionId.startsWith('GURU~');
+        
+        if (!isValidFormat) {
+            throw new Error("❌ Invalid session format. Expected 'Gifted~.....' or 'GURU~.....'");
+        }
+
+        const [header, b64data] = sessionId.split('~');
+
+        if (!b64data) {
+            throw new Error("❌ Invalid session format. Missing session data");
+        }
+
+        // Handle base64 session (direct)
+        if (b64data.startsWith('H4sI')) {
+            const compressedData = Buffer.from(b64data, 'base64');
+            const decompressedData = zlib.gunzipSync(compressedData);
+            
+            if (!fs.existsSync(sessionDir)) {
+                fs.mkdirSync(sessionDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(sessionPath, decompressedData, "utf8");
+            console.log("✅ Session File Loaded (Direct Base64)");
+            return true;
+        }
+        
+        // If it's not H4sI, it might be a raw session string
+        // Try to decode as base64 directly
+        try {
+            const compressedData = Buffer.from(b64data, 'base64');
+            const decompressedData = zlib.gunzipSync(compressedData);
+            
+            if (!fs.existsSync(sessionDir)) {
+                fs.mkdirSync(sessionDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(sessionPath, decompressedData, "utf8");
+            console.log("✅ Session File Loaded (Base64 Decoded)");
+            return true;
+        } catch (decodeError) {
+            // If decompression fails, it might be plain text session data
+            if (!fs.existsSync(sessionDir)) {
+                fs.mkdirSync(sessionDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(sessionPath, b64data, "utf8");
+            console.log("✅ Session File Loaded (Raw Session Data)");
+            return true;
+        }
+
+    } catch (e) {
+        throw new Error(`❌ Failed to load session: ${e.message}`);
+    }
+}
+
+// ============ GET PAIRING INFO ============
+function getPairingInfo() {
+    if (isPairingMode && pendingPairingNumber) {
+        return { isPairingMode: true, phoneNumber: pendingPairingNumber };
+    }
+    return { isPairingMode: false, phoneNumber: null };
+}
+
+function resetPairingMode() {
+    isPairingMode = false;
+    pendingPairingNumber = null;
+}
+
+async function useSQLiteAuthState(databasePath) {
+    const Database = require('better-sqlite3');
+    const { proto, initAuthCreds, BufferJSON } = require('gifted-baileys');
+
+    const dbPath = databasePath.endsWith('.db') ? databasePath : `${databasePath}/session.db`;
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+
+    const credsPath = path.join(path.dirname(dbPath), 'creds.json');
+    let initialCreds = null;
+    if (fs.existsSync(credsPath)) {
+        try {
+            const credsData = fs.readFileSync(credsPath, 'utf8');
+            initialCreds = JSON.parse(credsData, BufferJSON.reviver);
+        } catch (e) {
+            console.error('Failed to read creds.json:', e.message);
+        }
+    }
+
+    const db = new Database(dbPath);
+    db.pragma('journal_mode = WAL');
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS session (
+            id TEXT PRIMARY KEY,
+            value TEXT
+        )
+    `);
+
+    const readData = (id) => {
+        const row = db.prepare('SELECT value FROM session WHERE id = ?').get(id);
+        if (row) {
+            return JSON.parse(row.value, BufferJSON.reviver);
+        }
+        return null;
+    };
+
+    const writeData = (id, value) => {
+        db.prepare('INSERT OR REPLACE INTO session (id, value) VALUES (?, ?)').run(id, JSON.stringify(value, BufferJSON.replacer));
+    };
+
+    const removeData = (id) => {
+        db.prepare('DELETE FROM session WHERE id = ?').run(id);
+    };
+
+    if (initialCreds) {
+        writeData('creds', initialCreds);
+        try {
+            fs.unlinkSync(credsPath);
+        } catch (e) {}
+    }
+
+    const creds = readData('creds') || initAuthCreds();
+
+    return {
+        state: {
+            creds,
+            keys: {
+                get: async (type, ids) => {
+                    const data = {};
+                    for (const id of ids) {
+                        const value = readData(`${type}-${id}`);
+                        if (value) {
+                            data[id] = value;
+                        }
+                    }
+                    return data;
+                },
+                set: async (data) => {
+                    for (const category in data) {
+                        for (const id in data[category]) {
+                            const value = data[category][id];
+                            const key = `${category}-${id}`;
+                            if (value) {
+                                writeData(key, value);
+                            } else {
+                                removeData(key);
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        saveCreds: () => {
+            writeData('creds', creds);
+        }
+    };
+}
+
+// ============ STICKER FUNCTIONS ============
 async function stickerToImage(webpData, options = {}) {
     try {
         const {
@@ -158,13 +482,11 @@ async function withTempFiles(inputBuffer, extension, processFn) {
   }
 }
 
-
 async function toAudio(buffer) {
   return withTempFiles(buffer, 'mp3', (input, output) => {
     return new Promise((resolve, reject) => {
       const { execFile } = require('child_process');
       
-      // First check if video has audio stream
       execFile(ffmpegPath, ['-i', input, '-hide_banner'], { timeout: 30000 }, (probeErr, probeOut, probeStderr) => {
         const hasAudio = probeStderr && (probeStderr.includes('Audio:') || probeStderr.includes('audio'));
         
@@ -221,7 +543,6 @@ async function toVideo(buffer) {
   });
 }
 
-
 async function toPtt(buffer) {
   const { execFile } = require('child_process');
   const tempDir = path.join(__dirname, 'temp');
@@ -258,38 +579,6 @@ async function toPtt(buffer) {
         resolve(out);
       } catch (e) { cleanup(); reject(e); }
     });
-  });
-}
-
-async function waitForFileToStabilize(filePath, timeout = 500000) {
-  let lastSize = -1;
-  let stableCount = 0;
-  const interval = 200;
-
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    const timer = setInterval(async () => {
-      try {
-        const { size } = await fs.promises.stat(filePath);
-        if (size === lastSize) {
-          stableCount++;
-          if (stableCount >= 3) {
-            clearInterval(timer);
-            return resolve();
-          }
-        } else {
-          stableCount = 0;
-          lastSize = size;
-        }
-
-        if (Date.now() - start > timeout) {
-          clearInterval(timer);
-          return reject(new Error("File stabilization timed out."));
-        }
-      } catch (err) {
-        
-      }
-    }, interval);
   });
 }
 
@@ -334,7 +623,6 @@ async function formatAudio(buffer) {
   });
 }
 
-
 async function formatVideo(buffer) {
   const { execFile } = require('child_process');
   const tempDir = path.join(__dirname, 'temp');
@@ -363,8 +651,8 @@ async function formatVideo(buffer) {
         try { if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath); } catch {}
         execFile(ffmpegPath, [
           '-y', '-i', inputPath,
-          '-map', '0:v:0',          // primary video stream only
-          '-map', '0:a:0?',         // primary audio stream (optional — skip if broken)
+          '-map', '0:v:0',
+          '-map', '0:a:0?',
           '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23',
           '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-ar', '44100',
           '-movflags', '+faststart', '-pix_fmt', 'yuv420p',
@@ -380,7 +668,6 @@ async function formatVideo(buffer) {
       });
   });
 }
-
 
 function monospace(input) {
     const boldz = {
@@ -409,149 +696,6 @@ function formatBytes(bytes) {
   } else {
     return bytes.toFixed(2) + ' bytes';
   }
-    }
-
-async function loadSession() {
-    try {
-        if (fs.existsSync(sessionDir)) {
-            const allFiles = fs.readdirSync(sessionDir);
-            allFiles.forEach(f => {
-                try { fs.unlinkSync(path.join(sessionDir, f)); } catch (e) {}
-            });
-        }
-
-        if (!config.SESSION_ID || typeof config.SESSION_ID !== 'string') {
-            throw new Error("❌ SESSION_ID is missing or invalid");
-        }
-
-        let sessionId = config.SESSION_ID;
-        const [headerCheck, b64Check] = sessionId.split('~');
-
-        if (headerCheck !== "Gifted" || !b64Check) {
-            throw new Error("❌ Invalid session format. Expected 'Gifted~.....'");
-        }
-
-        if (!b64Check.startsWith('H4sI')) {
-            const serverUrl = `https://session.giftedtech.co.ke/session/${b64Check}`;
-            const res = await axios.get(serverUrl, { timeout: 15000 });
-            const fetched = (res.data || '').toString().trim();
-            if (!fetched.startsWith('Gifted~H4sI')) {
-                throw new Error("❌ Session server returned invalid data");
-            }
-            sessionId = fetched;
-        }
-
-        const [header, b64data] = sessionId.split('~');
-
-        if (header !== "Gifted" || !b64data) {
-            throw new Error("❌ Invalid session format. Expected 'Gifted~.....'");
-        }
-
-        const cleanB64 = b64data.replace('...', '');
-        const compressedData = Buffer.from(cleanB64, 'base64');
-        const decompressedData = zlib.gunzipSync(compressedData);
-
-        if (!fs.existsSync(sessionDir)) {
-            fs.mkdirSync(sessionDir, { recursive: true });
-        }
-
-        fs.writeFileSync(sessionPath, decompressedData, "utf8");
-        console.log("✅ Session File Loaded");
-
-    } catch (e) {
-        console.error("❌ Session Error:", e.message);
-        throw e;
-    }
-}
-
-async function useSQLiteAuthState(databasePath) {
-    const Database = require('better-sqlite3');
-    const { proto, initAuthCreds, BufferJSON } = require('gifted-baileys');
-
-    const dbPath = databasePath.endsWith('.db') ? databasePath : `${databasePath}/session.db`;
-    const dbDir = path.dirname(dbPath);
-    if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
-    }
-
-    const credsPath = path.join(path.dirname(dbPath), 'creds.json');
-    let initialCreds = null;
-    if (fs.existsSync(credsPath)) {
-        try {
-            const credsData = fs.readFileSync(credsPath, 'utf8');
-            initialCreds = JSON.parse(credsData, BufferJSON.reviver);
-        } catch (e) {
-            console.error('Failed to read creds.json:', e.message);
-        }
-    }
-
-    const db = new Database(dbPath);
-    db.pragma('journal_mode = WAL');
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS session (
-            id TEXT PRIMARY KEY,
-            value TEXT
-        )
-    `);
-
-    const readData = (id) => {
-        const row = db.prepare('SELECT value FROM session WHERE id = ?').get(id);
-        if (row) {
-            return JSON.parse(row.value, BufferJSON.reviver);
-        }
-        return null;
-    };
-
-    const writeData = (id, value) => {
-        db.prepare('INSERT OR REPLACE INTO session (id, value) VALUES (?, ?)').run(id, JSON.stringify(value, BufferJSON.replacer));
-    };
-
-    const removeData = (id) => {
-        db.prepare('DELETE FROM session WHERE id = ?').run(id);
-    };
-
-    if (initialCreds) {
-        writeData('creds', initialCreds);
-        try {
-            fs.unlinkSync(credsPath);
-        } catch (e) {}
-    }
-
-    const creds = readData('creds') || initAuthCreds();
-
-    return {
-        state: {
-            creds,
-            keys: {
-                get: async (type, ids) => {
-                    const data = {};
-                    for (const id of ids) {
-                        const value = readData(`${type}-${id}`);
-                        if (value) {
-                            data[id] = value;
-                        }
-                    }
-                    return data;
-                },
-                set: async (data) => {
-                    for (const category in data) {
-                        for (const id in data[category]) {
-                            const value = data[category][id];
-                            const key = `${category}-${id}`;
-                            if (value) {
-                                writeData(key, value);
-                            } else {
-                                removeData(key);
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        saveCreds: () => {
-            writeData('creds', creds);
-        }
-    };
 }
 
 const runtime = (seconds) => {
@@ -607,7 +751,7 @@ const gmdBuffer = async (url, options = {}) => {
             },
             ...options,
             responseType: 'arraybuffer',
-            timeout: 2400000 // 24 mins😂
+            timeout: 2400000
         });
         
         if (!res.data || res.data.length === 0) {
@@ -631,7 +775,7 @@ const gmdJson = async (url, options = {}) => {
                 'Accept': 'application/json'
             },
             ...options,
-            timeout: 2400000 // 24 mins😂
+            timeout: 2400000
         });
         
         if (!res.data) {
@@ -665,7 +809,7 @@ function verifyJidState(jid) {
         console.error('Your verified', jid);
         return false;
     }
-    console.log('Welcome to Gifted Md', jid);
+    console.log('Welcome to ULTRA GURU Bot', jid);
     return true;
 }
 
@@ -726,8 +870,6 @@ class gmdStore {
                 const oldestChats = Array.from(this.messages.keys()).slice(0, chatsToDelete);
                 oldestChats.forEach(jid => this.messages.delete(jid));
             }
-            
-         //   console.log(`🧹 Store cleanup: ${this.messages.size} chats in memory`);
         } catch (error) {
             console.error('Store cleanup error:', error);
         }
@@ -984,4 +1126,12 @@ function isTextContent(contentType) {
     return textTypes.some(t => contentType.includes(t));
 }
 
-module.exports = { dBinary, eBinary, dBase, eBase, runtime, sleep, gmdFancy, stickerToImage, toAudio, toVideo, toPtt, formatVideo, formatAudio, monospace, formatBytes, gmdBuffer, gmdJson, latestWaVersion, gmdRandom, isUrl, gmdStore, isNumber, loadSession, useSQLiteAuthState, verifyJidState, runFFmpeg, getVideoDuration, gmdSticker, copyFolderSync, gitRepoRegex, MAX_MEDIA_SIZE, getFileSize, getMimeCategory, getMimeFromUrl, MIME_EXTENSIONS, getExtensionFromMime, isTextContent };
+module.exports = { 
+    dBinary, eBinary, dBase, eBase, runtime, sleep, gmdFancy, stickerToImage, 
+    toAudio, toVideo, toPtt, formatVideo, formatAudio, monospace, formatBytes, 
+    gmdBuffer, gmdJson, latestWaVersion, gmdRandom, isUrl, gmdStore, isNumber, 
+    loadSession, useSQLiteAuthState, verifyJidState, runFFmpeg, getVideoDuration, 
+    gmdSticker, copyFolderSync, gitRepoRegex, MAX_MEDIA_SIZE, getFileSize, 
+    getMimeCategory, getMimeFromUrl, MIME_EXTENSIONS, getExtensionFromMime, 
+    isTextContent, detectHostEnvironment, getPairingInfo, resetPairingMode
+};
