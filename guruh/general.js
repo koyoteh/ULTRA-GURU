@@ -131,6 +131,8 @@ gmd(
       ownerNumber,
     } = conText;
     try {
+      const { getSetting } = require("../guru/database/settings");
+
       function formatUptime(seconds) {
         const days = Math.floor(seconds / (24 * 60 * 60));
         seconds %= 24 * 60 * 60;
@@ -162,29 +164,74 @@ gmd(
         (command) => command.pattern && !command.dontAddCommandList,
       ).length;
 
-      let menus = `
-*🦄 Uᴘᴛɪᴍᴇ :* ${monospace(uptime)}
-*🍁 Dᴀᴛᴇ Tᴏᴅᴀʏ:* ${monospace(date)}
-*🎗 Tɪᴍᴇ Nᴏᴡ:* ${monospace(time)}
+      let expiryLine = "";
+      try {
+        const expiryDate = await getSetting("BOT_EXPIRY_DATE");
+        if (expiryDate) {
+          const exp = new Date(expiryDate);
+          const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+          if (daysLeft <= 0) {
+            expiryLine = `\n🔴 *Expiry:* EXPIRED (${exp.toDateString()})`;
+          } else if (daysLeft <= 7) {
+            expiryLine = `\n🟡 *Expiry:* ${daysLeft}d left (${exp.toDateString()})`;
+          } else {
+            expiryLine = `\n🟢 *Expiry:* ${daysLeft}d left (${exp.toDateString()})`;
+          }
+        }
+      } catch {}
 
-➮Fᴏᴜɴᴅᴇʀ - GuruTech
-➮Usᴇʀ - ${monospace(pushName)}
-➮Nᴜᴍ - ${monospace(ownerNumber)} 
-➮Mᴇᴍᴏʀʏ - ${monospace(ram)}
+      const catIcons = {
+        general: "🌐", owner: "👑", group: "👥", ai: "🤖",
+        downloader: "📥", tools: "🔧", search: "🔍", games: "🎮",
+        fun: "🎉", religion: "🕌", sticker: "🖼️", converter: "🔄",
+        settings: "⚙️", media: "📸",
+      };
+      const categorized = commands.reduce((acc, cmd) => {
+        if (cmd.pattern && !cmd.dontAddCommandList) {
+          const cat = cmd.category || "general";
+          if (!acc[cat]) acc[cat] = 0;
+          acc[cat]++;
+        }
+        return acc;
+      }, {});
 
-*🧑‍💻 :* ${monospace(botName)} Iꜱ Aᴠᴀɪʟᴀʙʟᴇ
+      let categoryLines = Object.entries(categorized)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([cat, count]) => {
+          const icon = catIcons[cat.toLowerCase()] || "⚡";
+          return `│  ${icon} *${cat.charAt(0).toUpperCase() + cat.slice(1)}* — ${count} cmds`;
+        })
+        .join("\n");
 
-╭──❰ *ALL MENU* ❱
-│🏮 Lɪꜱᴛ
-│🏮 Cᴀᴛᴇɢᴏʀʏ
-│🏮 Hᴇʟᴘ
-│🏮 Aʟɪᴠᴇ
-│🏮 Uᴘᴛɪᴍᴇ
-│🏮 Wᴇᴀᴛʜᴇʀ
-│🏮 Lɪɴᴋ
-│🏮 Cᴘᴜ
-│🏮 Rᴇᴘᴏꜱɪᴛᴏʀʏ
-╰─────────────⦁`;
+      let menus =
+`╔══════════════════════════╗
+║  ✨ *${botName.toUpperCase()}* ✨  
+╚══════════════════════════╝
+
+👤 *User:* ${pushName}
+📱 *Mode:* ${botMode?.toUpperCase() || "PUBLIC"}
+🤖 *Version:* v${botVersion || "5.0.0"}
+⚡ *Prefix:* \`${botPrefix}\`
+📊 *Total Cmds:* ${totalCommands}
+⏱️ *Uptime:* ${uptime}
+🕒 *Time:* ${time}
+📅 *Date:* ${date}
+🌍 *Zone:* ${timeZone}${expiryLine}
+
+╭────── 📋 *CATEGORIES* ──────╮
+${categoryLines}
+╰──────────────────────────────╯
+
+┌──── 🚀 *QUICK COMMANDS* ────┐
+│  ${botPrefix}menu — Full command list
+│  ${botPrefix}list — All commands
+│  ${botPrefix}ping — Bot speed
+│  ${botPrefix}uptime — Bot uptime
+│  ${botPrefix}repo — Bot script
+│  ${botPrefix}help — Usage guide
+└──────────────────────────────┘
+
+> ✨ _${botFooter}_`;
 
       const giftedMess = {
         image: { url: botPic },
@@ -265,23 +312,25 @@ gmd(
         (command) => command.pattern && !command.dontAddCommandList,
       ).length;
 
-      let list = `✧━ *ULTRA GURU MD* ━✧
-┏━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 🌟 *Mode*     : ${monospace(botMode)}
+      let list =
+`╔══════════════════════════════╗
+║   📋 *ULTRA GURU — COMMAND LIST*   
+╠══════════════════════════════╣
+┃ 🌟 *Mode*     : ${monospace((botMode || "public").toUpperCase())}
 ┃ ⚡ *Prefix*   : ${monospace(botPrefix)}
 ┃ 👤 *User*     : ${monospace(pushName)}
 ┃ 📊 *Plugins*  : ${monospace(totalCommands.toString())}
-┃ 📌 *Version*  : ${monospace(botVersion)}
+┃ 📌 *Version*  : ${monospace("v" + (botVersion || "5.0.0"))}
 ┃ ⏳ *Uptime*   : ${monospace(uptime)}
 ┃ 🕒 *Time*     : ${monospace(time)}
 ┃ 📅 *Date*     : ${monospace(date)}
 ┃ 🌍 *Zone*     : ${monospace(timeZone)}
 ┃ 💾 *Ram*      : ${monospace(ram)}
-┗━━━━━━━━━━━━━━━━━━━━━━┛${readmore}\n\n`;
+╚══════════════════════════════╝${readmore}\n\n`;
 
       commands.forEach((gmd, index) => {
         if (gmd.pattern && gmd.description) {
-          list += `*${index + 1}.* ${monospace(gmd.pattern)}\n   ${gmd.description}\n\n`;
+          list += `*${index + 1}.* ${monospace(gmd.pattern)}\n   ↳ ${gmd.description}\n\n`;
         }
       });
 
@@ -382,27 +431,53 @@ gmd(
         categorized[cat].sort((a, b) => a.pattern.localeCompare(b.pattern));
       }
 
-      let header = `✧━ *ULTRA GURU MD* ━✧
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 🌟 *Mode*      : ${monospace(botMode)}
+      const { getSetting: getSettingMenu } = require("../guru/database/settings");
+      let expiryHeaderLine = "";
+      try {
+        const expiryRaw = await getSettingMenu("BOT_EXPIRY_DATE");
+        if (expiryRaw) {
+          const expD = new Date(expiryRaw);
+          const dLeft = Math.ceil((expD - new Date()) / (1000 * 60 * 60 * 24));
+          expiryHeaderLine = dLeft <= 0
+            ? `\n┃ 🔴 *Expiry*     : EXPIRED`
+            : dLeft <= 7
+              ? `\n┃ 🟡 *Expiry*     : ${dLeft}d left`
+              : `\n┃ 🟢 *Expiry*     : ${dLeft}d left`;
+        }
+      } catch {}
+
+      const catIcons2 = {
+        general: "🌐", owner: "👑", group: "👥", ai: "🤖",
+        downloader: "📥", tools: "🔧", search: "🔍", games: "🎮",
+        fun: "🎉", religion: "🕌", sticker: "🖼️", converter: "🔄",
+        settings: "⚙️", media: "📸",
+      };
+
+      let header =
+`╔═══════════════════════════════╗
+║   🌟 *ULTRA GURU MD — MENU* 🌟   
+╠═══════════════════════════════╣
+┃ 🎭 *Bot*       : ${monospace(botName)}
+┃ 🌟 *Mode*      : ${monospace((botMode || "public").toUpperCase())}
 ┃ ⚡ *Prefix*    : ${monospace(botPrefix)}
 ┃ 👤 *User*      : ${monospace(pushName)}
 ┃ 📊 *Plugins*   : ${monospace(totalCommands.toString())}
-┃ 📌 *Version*   : ${monospace(botVersion)}
+┃ 📌 *Version*   : ${monospace("v" + (botVersion || "5.0.0"))}
 ┃ ⏳ *Uptime*    : ${monospace(uptime)}
 ┃ 🕒 *Time*      : ${monospace(time)}
 ┃ 📅 *Date*      : ${monospace(date)}
 ┃ 🌍 *Zone*      : ${monospace(timeZone)}
-┃ 💾 *Ram*       : ${monospace(ram)}
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛${readmore}\n\n`;
+┃ 💾 *Ram*       : ${monospace(ram)}${expiryHeaderLine}
+╚═══════════════════════════════╝${readmore}\n\n`;
 
       const formatCategory = (category, gmds) => {
-        let catText = `✦━━━ *${monospace(category.toUpperCase())}* ━━━✦\n`;
+        const icon = catIcons2[category.toLowerCase()] || "⚡";
+        let catText = `\n╭──── ${icon} *${category.toUpperCase()}* ────╮\n`;
         gmds.forEach((gmd) => {
           const prefix = gmd.isBody ? "" : botPrefix;
-          catText += `◉ ${monospace(prefix + gmd.pattern)}\n`;
+          catText += `│  ◈ ${monospace(prefix + gmd.pattern)}\n`;
         });
-        catText += `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        catText += `╰${"─".repeat(28)}╯\n`;
         return catText;
       };
 
