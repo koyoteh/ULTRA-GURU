@@ -9,8 +9,11 @@
     "npm": "9.9.4"
   },
   "scripts": {
-    "start": "node --max-old-space-size=256 index.js",
-    "dev": "node --max-old-space-size=256 index.js"
+    "start": "node --max-old-space-size=512 index.js",
+    "dev": "node --max-old-space-size=512 index.js",
+    "rebuild": "npm rebuild sharp",
+    "fix-sharp": "npm uninstall sharp && npm install sharp --platform=linux --arch=x64",
+    "clean": "rm -rf node_modules package-lock.json && npm install"
   },
   "keywords": [
     "gurutech",
