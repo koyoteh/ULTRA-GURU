@@ -6,7 +6,7 @@ const { gmd, commands, monospace, formatBytes } = require("../guru"),
   moment = require("moment-timezone"),
   more = String.fromCharCode(8206),
   readmore = more.repeat(4001),
-  ram = `\( {formatBytes(freeMemoryBytes)}/ \){formatBytes(totalMemoryBytes)}`;
+  ram = `${formatBytes(freeMemoryBytes)} / ${formatBytes(totalMemoryBytes)}`;
 const { sendButtons } = require("gifted-btns");
 
 gmd(
@@ -931,7 +931,7 @@ gmd(
         if (trimmed.length > MAX_DESC) {
           const visible = trimmed.slice(0, MAX_DESC);
           const hidden = trimmed.slice(MAX_DESC);
-          descSection = `\n\n📄 *Description:*\n\( {visible} \){readmore}${hidden}`;
+          descSection = `\n\n📄 *Description:*\n${visible}${readmore}${hidden}`;
         } else {
           descSection = `\n\n📄 *Description:*\n${trimmed}`;
         }
