@@ -99,6 +99,7 @@ const setupNewsletterReactions = (Gifted) => {
     channelReactListenerActive = true;
 
     Gifted.ev.on("messages.upsert", async ({ messages, type }) => {
+        if (type !== "notify") return;
         try {
             for (const msg of messages) {
                 if (!msg?.key?.remoteJid) continue;
@@ -137,11 +138,7 @@ const setupNewsletterReactions = (Gifted) => {
                     }
                     console.log(`📡 Auto-reacted to channel post [${jid.split("@")[0]}] with ${emoji}`);
                 } catch (reactErr) {
-                    try {
-                        await Gifted.sendMessage(jid, {
-                            react: { key: msg.key, text: emoji },
-                        });
-                    } catch (_) {}
+                    console.error(`📡 Auto-react failed for [${jid.split("@")[0]}]:`, reactErr.message);
                 }
             }
         } catch (err) {
