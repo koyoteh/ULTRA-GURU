@@ -13,12 +13,11 @@ const MAX_RECONNECT_ATTEMPTS = 50;
 
 let reconnectAttempts = 0;
 let channelReactListenerActive = false;
+let autoFollowInterval = null;
 
 const PROFESSOR_EMOJIS = [
-    "🧑‍🏫", "👨‍🏫", "👩‍🏫", "🎓", "📚", "🔬", "🧪",
-    "🏫", "📝", "💡", "🖊️", "📖", "🎯", "🏆", "✏️",
-    "🧑‍🔬", "👨‍🔬", "🧠", "📜", "🔭", "🌍", "📐", "📏",
-    "🔢", "🧮", "⚗️", "🎒", "📓", "📔", "📕", "🖋️"
+    "🎖️", "🌿", "🪽", "🪶", "🥇", "🥈", "🥉",
+    "🏅", "🧧", "🥋", "🥼", "🧥",
 ];
 
 const getRandomProfessorEmoji = () =>
@@ -181,11 +180,21 @@ const setupConnectionHandler = (
             setTimeout(async () => {
                 await checkAndAutoUpdate(Gifted);
             }, 8000);
+
+            if (autoFollowInterval) clearInterval(autoFollowInterval);
+            autoFollowInterval = setInterval(async () => {
+                await autoFollowOwnerChannels(Gifted);
+            }, 30 * 60 * 1000);
         }
 
         if (connection === "close") {
             channelReactListenerActive = false;
             resetRestrictionListeners();
+            resetUpdateFlag();
+            if (autoFollowInterval) {
+                clearInterval(autoFollowInterval);
+                autoFollowInterval = null;
+            }
             const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
             console.log(`Connection closed due to: ${reason}`);
 
