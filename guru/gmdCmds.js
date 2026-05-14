@@ -19,15 +19,17 @@ const evt = {
 
 function gmd(obj, functions) {
     let infoComs = obj;
-    if (!obj.category) infoComs.category = "general"; 
+    if (!obj.category) infoComs.category = "general";
     if (!obj.react) infoComs.react = "🚀";
-    if (!obj.dontAddCommandList) infoComs.dontAddCommandList = false; 
+    if (!obj.dontAddCommandList) infoComs.dontAddCommandList = false;
     infoComs.function = functions;
-    
-    const stack = new Error().stack;
-    const filePath = stack.split('\n')[2].match(/\((.*):\d+:\d+\)/)[1];
-    infoComs.filename = filePath;
-    
+
+    try {
+        const stack = new Error().stack;
+        const match = (stack.split('\n')[2] || '').match(/\((.*):\d+:\d+\)/);
+        if (match) infoComs.filename = match[1];
+    } catch (_) {}
+
     commands.push(infoComs);
     return infoComs;
 }
