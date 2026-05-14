@@ -1,12 +1,35 @@
-/**
- * Fun & Entertainment Features for ULTRA-GURU
- * Games, jokes, and fun commands
- */
 
-const { gmd, commands, reply } = require('./index');
-const axios = require('axios');
+const { gmd } = require("../guru");
+const axios = require("axios");
 
-// ============ DICE ROLL COMMAND ============
+const RIDDLES = [
+  { q: "I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?", a: "An echo" },
+  { q: "The more you take, the more you leave behind. What am I?", a: "Footsteps" },
+  { q: "I have cities, but no houses live there. I have mountains, but no trees grow there. I have water, but no fish swim there. What am I?", a: "A map" },
+  { q: "What has hands but can't clap?", a: "A clock" },
+  { q: "What gets wetter the more it dries?", a: "A towel" },
+  { q: "I have a head and a tail, but no body. What am I?", a: "A coin" },
+  { q: "What comes once in a minute, twice in a moment, but never in a thousand years?", a: "The letter M" },
+  { q: "The more you take away from me, the bigger I get. What am I?", a: "A hole" },
+  { q: "I'm always in front of you but can never be seen. What am I?", a: "The future" },
+  { q: "What has many keys but can't open a single lock?", a: "A piano" },
+  { q: "What runs but never walks, has a mouth but never talks?", a: "A river" },
+  { q: "What can travel around the world while staying in a corner?", a: "A stamp" },
+];
+
+const ROASTS = [
+  "You're like a human version of a participation trophy.",
+  "If you were a vegetable, you'd be a turnip — you've turned up nowhere.",
+  "I'd roast you, but my mom said I'm not supposed to burn trash.",
+  "You're proof that even nature makes mistakes.",
+  "I'm not saying you're dumb, but you'd lose a game of wits to a toaster.",
+  "You're the reason they put instructions on shampoo bottles.",
+  "You have the energy of a dying phone battery.",
+  "If brains were petrol, you wouldn't have enough to power an ant's moped.",
+  "You're the human equivalent of a 'loading' screen.",
+  "Somewhere out there, a tree is working overtime producing the oxygen you waste.",
+];
+
 gmd(
   {
     pattern: "dice",
@@ -16,18 +39,14 @@ gmd(
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
-    try {
-      const diceResult = Math.floor(Math.random() * 6) + 1;
-      await react("✅");
-      reply(`🎲 You rolled: **${diceResult}**`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { reply, react, botFooter } = conText;
+    const result = Math.floor(Math.random() * 6) + 1;
+    const faces = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+    await react("✅");
+    await reply(`🎲 *Dice Roll*\n\n${faces[result]}  You rolled: *${result}*\n\n> _${botFooter}_`);
   }
 );
 
-// ============ COIN FLIP COMMAND ============
 gmd(
   {
     pattern: "coin",
@@ -37,46 +56,32 @@ gmd(
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
-    try {
-      const flip = Math.random() > 0.5 ? "Heads" : "Tails";
-      await react("✅");
-      reply(`🪙 Coin flipped: **${flip}**`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { reply, react, botFooter } = conText;
+    const flip = Math.random() > 0.5 ? "🟡 Heads" : "⚪ Tails";
+    await react("✅");
+    await reply(`🪙 *Coin Flip*\n\n${flip}\n\n> _${botFooter}_`);
   }
 );
 
-// ============ RANDOM NUMBER COMMAND ============
 gmd(
   {
     pattern: "random",
     aliases: ["rnd", "rand"],
-    description: "Generate random number in range",
+    description: "Generate random number in range. Usage: .random 1 100",
     react: "🎰",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { args, reply, react } = conText;
-    try {
-      const min = parseInt(args[0]) || 1;
-      const max = parseInt(args[1]) || 100;
-
-      if (min >= max) {
-        return reply("❌ Min must be less than Max!");
-      }
-
-      const random = Math.floor(Math.random() * (max - min + 1)) + min;
-      await react("✅");
-      reply(`🎰 Random number between ${min}-${max}: **${random}**`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { args, reply, react, botFooter } = conText;
+    const min = parseInt(args[0]) || 1;
+    const max = parseInt(args[1]) || 100;
+    if (min >= max) return reply("❌ Min must be less than Max!");
+    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+    await react("✅");
+    await reply(`🎰 *Random Number*\n\nRange: ${min} – ${max}\nResult: *${num}*\n\n> _${botFooter}_`);
   }
 );
 
-// ============ JOKE COMMAND ============
 gmd(
   {
     pattern: "joke",
@@ -86,74 +91,62 @@ gmd(
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
+    const { reply, react, botFooter } = conText;
     try {
       await react("⏳");
-      const response = await axios.get('https://official-joke-api.appspot.com/random_joke');
-      const { setup, punchline } = response.data;
-
+      const res = await axios.get("https://official-joke-api.appspot.com/random_joke", { timeout: 10000 });
+      const { setup, punchline } = res.data;
       await react("✅");
-      reply(`*😂 Joke:*\n\n${setup}\n\n_${punchline}_`);
-    } catch (error) {
-      reply("❌ Could not fetch joke!");
+      await reply(`😂 *Joke*\n\n${setup}\n\n_${punchline}_\n\n> _${botFooter}_`);
+    } catch {
+      await react("❌");
+      await reply("❌ Could not fetch a joke right now. Try again!");
     }
   }
 );
 
-// ============ MEME COMMAND ============
 gmd(
   {
     pattern: "meme",
-    aliases: ["memes", "funny_pic"],
-    description: "Get a random meme",
+    aliases: ["memes", "funnypic"],
+    description: "Get a random meme from Reddit",
     react: "😆",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react, Gifted: bot } = conText;
+    const { reply, react, mek, botFooter, botName } = conText;
     try {
       await react("⏳");
-      const response = await axios.get('https://meme-api.herokuapp.com/gimme');
-      const { url, title, subreddit } = response.data;
-
-      const memeMess = {
+      const res = await axios.get("https://meme-api.com/gimme", { timeout: 10000 });
+      const { url, title, subreddit } = res.data;
+      await Gifted.sendMessage(from, {
         image: { url },
-        caption: `*😆 Meme from r/${subreddit}*\n\n${title}`,
-      };
-
-      await bot.sendMessage(from, memeMess);
+        caption: `*${botName} MEME*\n\n😆 ${title}\n📌 r/${subreddit}\n\n> _${botFooter}_`,
+      }, { quoted: mek });
       await react("✅");
-    } catch (error) {
-      reply("❌ Could not fetch meme!");
+    } catch {
+      await react("❌");
+      await reply("❌ Could not fetch meme right now. Try again!");
     }
   }
 );
 
-// ============ RIDDLE COMMAND ============
 gmd(
   {
     pattern: "riddle",
-    aliases: ["puzzle", "brain_teaser"],
-    description: "Get a riddle puzzle",
+    aliases: ["puzzle", "brainteaser"],
+    description: "Get a random riddle",
     react: "🧩",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
-    try {
-      await react("⏳");
-      const response = await axios.get('https://riddle-api.herokuapp.com/random');
-      const { riddle, answer } = response.data;
-
-      await react("✅");
-      reply(`*🧩 Riddle:*\n\n${riddle}\n\n_Reply with .answer to reveal the answer_`);
-    } catch (error) {
-      reply("❌ Could not fetch riddle!");
-    }
+    const { reply, react, botFooter } = conText;
+    const item = RIDDLES[Math.floor(Math.random() * RIDDLES.length)];
+    await react("✅");
+    await reply(`🧩 *Riddle*\n\n${item.q}\n\n||Answer: _${item.a}_||\n\n> _${botFooter}_`);
   }
 );
 
-// ============ TRIVIA COMMAND ============
 gmd(
   {
     pattern: "trivia",
@@ -163,28 +156,24 @@ gmd(
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
+    const { reply, react, botFooter } = conText;
     try {
       await react("⏳");
-      const response = await axios.get('https://opentdb.com/api.php?amount=1&type=multiple');
-      const question = response.data.results[0];
-
-      let triviaText = `*🧠 Trivia Question:*\n\n${question.question}\n\n`;
-      const answers = [...question.incorrect_answers, question.correct_answer].sort();
-
-      answers.forEach((ans, index) => {
-        triviaText += `${index + 1}. ${ans}\n`;
-      });
-
+      const res = await axios.get("https://opentdb.com/api.php?amount=1&type=multiple", { timeout: 10000 });
+      const q = res.data.results[0];
+      const answers = [...q.incorrect_answers, q.correct_answer].sort(() => Math.random() - 0.5);
+      let txt = `🧠 *Trivia*\n\n*Category:* ${q.category}\n*Difficulty:* ${q.difficulty}\n\n${q.question}\n\n`;
+      answers.forEach((a, i) => { txt += `${["🅰️","🅱️","🆎","🆑"][i]} ${a}\n`; });
+      txt += `\n||✅ Answer: _${q.correct_answer}_||\n\n> _${botFooter}_`;
       await react("✅");
-      reply(triviaText);
-    } catch (error) {
-      reply("❌ Could not fetch trivia!");
+      await reply(txt);
+    } catch {
+      await react("❌");
+      await reply("❌ Could not fetch trivia right now. Try again!");
     }
   }
 );
 
-// ============ 8BALL COMMAND ============
 gmd(
   {
     pattern: "8ball",
@@ -194,113 +183,68 @@ gmd(
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { args, reply, react } = conText;
-    try {
-      if (!args.length) {
-        return reply("*Usage:* `.8ball <your question>`");
-      }
-
-      const responses = [
-        "✅ Yes, definitely!",
-        "✅ It is certain.",
-        "✅ Most likely.",
-        "❓ Ask again later.",
-        "❓ Cannot predict now.",
-        "❌ No, definitely not.",
-        "❌ Don't count on it.",
-        "❌ Very unlikely.",
-        "🤷 My sources say no.",
-        "🤷 The outlook is uncertain.",
-      ];
-
-      const answer = responses[Math.floor(Math.random() * responses.length)];
-      await react("✅");
-      reply(`*🎱 Magic 8-Ball:*\n\n${answer}`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { q, reply, react, botFooter } = conText;
+    if (!q) return reply("*Usage:* `.8ball <your question>`");
+    const responses = [
+      "✅ Yes, definitely!", "✅ It is certain.", "✅ Most likely.", "✅ Without a doubt.",
+      "❓ Ask again later.", "❓ Cannot predict now.", "❓ Signs point to maybe.",
+      "❌ No, definitely not.", "❌ Don't count on it.", "❌ Very unlikely.",
+    ];
+    const answer = responses[Math.floor(Math.random() * responses.length)];
+    await react("✅");
+    await reply(`🎱 *Magic 8-Ball*\n\n❓ ${q}\n\n${answer}\n\n> _${botFooter}_`);
   }
 );
 
-// ============ CHOICE COMMAND ============
 gmd(
   {
     pattern: "choose",
-    aliases: ["pick", "select"],
-    description: "Make a random choice from options",
+    aliases: ["pick", "decide"],
+    description: "Make a random choice from options. Usage: .choose pizza|burger|tacos",
     react: "🎯",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { args, reply, react } = conText;
-    try {
-      if (args.length < 2) {
-        return reply("*Usage:* `.choose <option1> <option2> [option3] ...`\n\n_Example: .choose pizza burger tacos_");
-      }
-
-      const choice = args[Math.floor(Math.random() * args.length)];
-      await react("✅");
-      reply(`🎯 I choose: **${choice}**`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { q, reply, react, botFooter } = conText;
+    if (!q) return reply("*Usage:* `.choose option1|option2|option3`\n_Example: .choose pizza|burger|tacos_");
+    const options = q.split("|").map(o => o.trim()).filter(Boolean);
+    if (options.length < 2) return reply("❌ Provide at least 2 options separated by `|`");
+    const choice = options[Math.floor(Math.random() * options.length)];
+    await react("✅");
+    await reply(`🎯 *I Choose*\n\nOptions: ${options.join(" · ")}\n\n✨ *${choice}*\n\n> _${botFooter}_`);
   }
 );
 
-// ============ RATE COMMAND ============
 gmd(
   {
     pattern: "rate",
-    aliases: ["rating", "howmuch"],
-    description: "Rate something from 1-10",
+    aliases: ["rating", "rateme"],
+    description: "Rate something out of 10. Usage: .rate pizza",
     react: "⭐",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { args, reply, react } = conText;
-    try {
-      if (!args.length) {
-        return reply("*Usage:* `.rate <something>`\n\n_Example: .rate pizza_");
-      }
-
-      const rating = Math.floor(Math.random() * 11);
-      const item = args.join(" ");
-
-      await react("✅");
-      reply(`⭐ I rate ${item}: **${rating}/10**`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { q, reply, react, botFooter } = conText;
+    if (!q) return reply("*Usage:* `.rate <something>`\n_Example: .rate pizza_");
+    const rating = Math.floor(Math.random() * 11);
+    const bar = "⭐".repeat(rating) + "☆".repeat(10 - rating);
+    await react("✅");
+    await reply(`⭐ *Rating*\n\n${q}: *${rating}/10*\n${bar}\n\n> _${botFooter}_`);
   }
 );
 
-// ============ ROAST COMMAND ============
 gmd(
   {
     pattern: "roast",
-    aliases: ["roasting", "insult"],
+    aliases: ["roasting", "burnme"],
     description: "Get a random roast",
     react: "🔥",
     category: "fun",
   },
   async (from, Gifted, conText) => {
-    const { reply, react } = conText;
-    try {
-      const roasts = [
-        "You're like a human version of a participation trophy.",
-        "If you were a vegetable, you'd be a turnip because you've turned up nowhere.",
-        "I'd roast you, but my mom said I'm not supposed to burn trash.",
-        "You're proof that even nature makes mistakes.",
-        "I'm not saying you're dumb, but you'd lose a game of wits to a toaster.",
-      ];
-
-      const roast = roasts[Math.floor(Math.random() * roasts.length)];
-      await react("✅");
-      reply(`🔥 *Roast:*\n\n${roast}`);
-    } catch (error) {
-      reply(`❌ Error: ${error.message}`);
-    }
+    const { reply, react, botFooter } = conText;
+    const roast = ROASTS[Math.floor(Math.random() * ROASTS.length)];
+    await react("✅");
+    await reply(`🔥 *Roast*\n\n${roast}\n\n> _${botFooter}_`);
   }
 );
-
-module.exports = { gmd };
