@@ -7,6 +7,7 @@ const { setupGroupCacheListeners } = require("./groupCache");
 const { checkAndAutoUpdate, resetUpdateFlag } = require("../autoUpdater");
 const { setupRestrictionManager, resetRestrictionListeners } = require("../restrictionManager");
 const { setupVVTracker } = require("../gmdFunctions2");
+const { startScheduler, stopScheduler } = require("../scheduler");
 
 const RECONNECT_DELAY = 5000;
 const MAX_RECONNECT_ATTEMPTS = 50;
@@ -181,6 +182,10 @@ const setupConnectionHandler = (
                 await checkAndAutoUpdate(Gifted);
             }, 8000);
 
+            setTimeout(async () => {
+                await startScheduler(Gifted);
+            }, 10000);
+
             if (autoFollowInterval) clearInterval(autoFollowInterval);
             autoFollowInterval = setInterval(async () => {
                 await autoFollowOwnerChannels(Gifted);
@@ -191,6 +196,7 @@ const setupConnectionHandler = (
             channelReactListenerActive = false;
             resetRestrictionListeners();
             resetUpdateFlag();
+            stopScheduler();
             if (autoFollowInterval) {
                 clearInterval(autoFollowInterval);
                 autoFollowInterval = null;

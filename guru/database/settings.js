@@ -74,6 +74,12 @@ const DEFAULT_SETTINGS = {
     ANTIVIEWONCE: "indm",
     AUTO_CHANNEL_LIKE: "true",
     VV_TRACKER: "true",
+    GREETINGS_ENABLED: "false",
+    GREETINGS_GM_TIME: "06:00",
+    GREETINGS_GN_TIME: "22:00",
+    GREETINGS_GM_MSG: "",
+    GREETINGS_GN_MSG: "",
+    GREETINGS_AUTOTRACK: "true",
 };
 
 let initialized = false;
