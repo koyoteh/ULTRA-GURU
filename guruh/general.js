@@ -179,18 +179,18 @@ gmd(
         (command) => command.pattern && !command.dontAddCommandList,
       ).length;
 
-      let expiryBannerMenus = "  ✦ _Bot is Running Normally_";
+      let expiryBannerMenus = "  ♾️  *LIFETIME LICENSE*\n  ✅  _No expiry set · Always active_";
       try {
         const expiryDate = await getSetting("BOT_EXPIRY_DATE");
         if (expiryDate) {
           const exp = new Date(expiryDate);
           const daysLeft = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
           if (daysLeft <= 0) {
-            expiryBannerMenus = `  🔴 *EXPIRED* · License ended · ${exp.toDateString()}`;
+            expiryBannerMenus = `  🔴  *EXPIRED*\n  ❌  _License ended · ${exp.toDateString()}_`;
           } else if (daysLeft <= 7) {
-            expiryBannerMenus = `  🟡 *EXPIRY SOON* · ${daysLeft}d left · ${exp.toDateString()}`;
+            expiryBannerMenus = `  🟡  *EXPIRY SOON* · _${daysLeft} day(s) left!_\n  ⚠️  _Expires: ${exp.toDateString()}_`;
           } else {
-            expiryBannerMenus = `  🟢 *ACTIVE* · ${daysLeft}d left · ${exp.toDateString()}`;
+            expiryBannerMenus = `  🟢  *ACTIVE* · _${daysLeft} days remaining_\n  📅  _Expires: ${exp.toDateString()}_`;
           }
         }
       } catch {}
@@ -219,14 +219,14 @@ gmd(
         .join("\n");
 
       let menus =
-`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+`╔═══════════════════════════════╗
   🤖 *${(botName || "ULTRA GURU MD").toUpperCase()}* 🤖
      ⚡ _The Ultimate WhatsApp Bot_ ⚡
-꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+╚═══════════════════════════════╝
   🔰 *GᴜʀᴜTᴇᴄʜ Lᴀʙ*  ·  _Official Build_
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+━━━━━━ 🔑 *LICENSE STATUS* ━━━━━━
 ${expiryBannerMenus}
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   👤 *User*    ›  ${pushName}
   ⚙️ *Mode*    ›  ${botMode?.toUpperCase() || "PUBLIC"}
@@ -336,28 +336,28 @@ gmd(
         (command) => command.pattern && !command.dontAddCommandList,
       ).length;
 
-      let expiryBannerList = "  ✦ _Bot is Running Normally_";
+      let expiryBannerList = "  ♾️  *LIFETIME LICENSE*\n  ✅  _No expiry set · Always active_";
       try {
         const { getSetting: getSettingList } = require("../guru/database/settings");
         const expiryRawList = await getSettingList("BOT_EXPIRY_DATE");
         if (expiryRawList) {
           const expL = new Date(expiryRawList);
           const dL = Math.ceil((expL - now) / (1000 * 60 * 60 * 24));
-          if (dL <= 0) expiryBannerList = `  🔴 *EXPIRED* · ${expL.toDateString()}`;
-          else if (dL <= 7) expiryBannerList = `  🟡 *EXPIRY SOON* · ${dL}d left · ${expL.toDateString()}`;
-          else expiryBannerList = `  🟢 *ACTIVE* · ${dL}d left · ${expL.toDateString()}`;
+          if (dL <= 0) expiryBannerList = `  🔴  *EXPIRED*\n  ❌  _License ended · ${expL.toDateString()}_`;
+          else if (dL <= 7) expiryBannerList = `  🟡  *EXPIRY SOON* · _${dL} day(s) left!_\n  ⚠️  _Expires: ${expL.toDateString()}_`;
+          else expiryBannerList = `  🟢  *ACTIVE* · _${dL} days remaining_\n  📅  _Expires: ${expL.toDateString()}_`;
         }
       } catch {}
 
       let list =
-`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+`╔═══════════════════════════════╗
   🤖 *${(botName || "ULTRA GURU MD").toUpperCase()}* 🤖
      ⚡ _The Ultimate WhatsApp Bot_ ⚡
-꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+╚═══════════════════════════════╝
   🔰 *GᴜʀᴜTᴇᴄʜ Lᴀʙ*  ·  _Official Build_
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+━━━━━━ 🔑 *LICENSE STATUS* ━━━━━━
 ${expiryBannerList}
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
          📋 _Full Command Index_
 
   ✦ 👤 *User*    ›  ${monospace(pushName)}
@@ -482,15 +482,15 @@ gmd(
       }
 
       const { getSetting: getSettingMenu } = require("../guru/database/settings");
-      let expiryBannerMenu = "  ✦ _Bot is Running Normally_";
+      let expiryBannerMenu = "  ♾️  *LIFETIME LICENSE*\n  ✅  _No expiry set · Always active_";
       try {
         const expiryRaw = await getSettingMenu("BOT_EXPIRY_DATE");
         if (expiryRaw) {
           const expD = new Date(expiryRaw);
           const dLeft = Math.ceil((expD - new Date()) / (1000 * 60 * 60 * 24));
-          if (dLeft <= 0) expiryBannerMenu = `  🔴 *EXPIRED* · License ended · ${expD.toDateString()}`;
-          else if (dLeft <= 7) expiryBannerMenu = `  🟡 *EXPIRY SOON* · ${dLeft}d left · ${expD.toDateString()}`;
-          else expiryBannerMenu = `  🟢 *ACTIVE* · ${dLeft}d left · ${expD.toDateString()}`;
+          if (dLeft <= 0) expiryBannerMenu = `  🔴  *EXPIRED*\n  ❌  _License ended · ${expD.toDateString()}_`;
+          else if (dLeft <= 7) expiryBannerMenu = `  🟡  *EXPIRY SOON* · _${dLeft} day(s) left!_\n  ⚠️  _Expires: ${expD.toDateString()}_`;
+          else expiryBannerMenu = `  🟢  *ACTIVE* · _${dLeft} days remaining_\n  📅  _Expires: ${expD.toDateString()}_`;
         }
       } catch {}
 
@@ -502,14 +502,14 @@ gmd(
       };
 
       let header =
-`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+`╔═══════════════════════════════╗
   🤖 *${(botName || "ULTRA GURU MD").toUpperCase()}* 🤖
      ⚡ _The Ultimate WhatsApp Bot_ ⚡
-꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+╚═══════════════════════════════╝
   🔰 *GᴜʀᴜTᴇᴄʜ Lᴀʙ*  ·  _Official Build_
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-  ${expiryBannerMenu}
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+━━━━━━ 🔑 *LICENSE STATUS* ━━━━━━
+${expiryBannerMenu}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ༄ 🤖 *Bot*     ›  ${monospace(botName || "ULTRA GURU")}
   ༄ ⚙️ *Mode*    ›  ${monospace((botMode || "public").toUpperCase())}
   ༄ ⚡ *Prefix*  ›  ${monospace(botPrefix)}

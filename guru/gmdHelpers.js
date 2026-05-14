@@ -81,7 +81,7 @@ const createContext = async (userJid, options = {}) => {
         (await getSetting("BOT_PIC")) ||
         "https://files.catbox.moe/5evber.jpg";
     const newsletterJid =
-        (await getSetting("NEWSLETTER_JID")) || "120363406466294627@newsletter";
+        (await getSetting("NEWSLETTER_JID")) || "120363406649804510@newsletter";
     const newsletterUrl =
         (await getSetting("NEWSLETTER_URL")) ||
         "https://whatsapp.com/channel/0029VbCl2UX3rZZilMSvxN1e";
@@ -119,7 +119,7 @@ const createContext2 = async (userJid, options = {}) => {
         (await getSetting("BOT_PIC")) ||
         "https://files.catbox.moe/5evber.jpg";
     const newsletterJid =
-        (await getSetting("NEWSLETTER_JID")) || "120363406466294627@newsletter";
+        (await getSetting("NEWSLETTER_JID")) || "120363406649804510@newsletter";
 
     return {
         contextInfo: {
