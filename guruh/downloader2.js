@@ -66,10 +66,10 @@ gmd(
             const endpoints = ["spotifydl", "spotifydlv2"];
 
             const t0 = Date.now();
-            const result = await Promise.any(
+            let result = await Promise.any(
                 endpoints.map(endpoint => {
                     const apiUrl = `${GiftedTechApi}/api/download/${endpoint}?apikey=${GiftedApiKey}&url=${encodeURIComponent(trackUrl)}`;
-                    return axios.get(apiUrl, { timeout: 20000 }).then(res => {
+                    return axios.get(apiUrl, { timeout: 15000 }).then(res => {
                         if (res.data?.success && res.data?.result?.download_url) {
                             return res.data.result;
                         }
@@ -77,6 +77,25 @@ gmd(
                     });
                 })
             ).catch(() => null);
+
+            if (!result?.download_url) {
+                try {
+                    const trackId = trackUrl.split('/track/')[1]?.split('?')[0];
+                    if (trackId) {
+                        const sdRes = await axios.get(`https://api.spotifydown.com/download/${trackId}`, {
+                            headers: { 'origin': 'https://spotifydown.com', 'referer': 'https://spotifydown.com/' },
+                            timeout: 15000
+                        });
+                        if (sdRes.data?.success && sdRes.data?.link) {
+                            result = {
+                                download_url: sdRes.data.link,
+                                title: sdRes.data.metadata?.title || 'Spotify Track',
+                                thumbnail: sdRes.data.metadata?.cover
+                            };
+                        }
+                    }
+                } catch (_) {}
+            }
 
             if (!result || !result.download_url) {
                 await react("❌");
