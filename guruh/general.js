@@ -36,10 +36,20 @@ gmd(
     const elapsed = process.hrtime(startTime);
     const responseTime = Math.floor(elapsed[0] * 1000 + elapsed[1] / 1000000);
 
+    const quality = responseTime < 200 ? "🟢 Excellent" : responseTime < 500 ? "🟡 Good" : "🔴 Fair";
+
     await sendButtons(Gifted, from, {
-      title: "Bot Speed",
-      text: `⚡ Pong: ${responseTime}ms`,
-      footer: `> *${botFooter}*`,
+      title: "",
+      text:
+`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+  ⚡ *${(botName || "ULTRA GURU MD").toUpperCase()}* ⚡
+       _Ping & Response Check_
+꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+
+  🏓 *Response* ›  ${monospace(responseTime + "ms")}
+  ${quality} *Quality*
+  🔰 *Status*   ›  Online & Ready`,
+      footer: `> ✨ _${botFooter}_`,
       buttons: [
         { id: `${botPrefix}uptime`, text: "⏱️ Uptime" },
         {
@@ -647,8 +657,16 @@ gmd(
 
     await sendButtons(Gifted, from, {
       title: "",
-      text: `⏱️ Uptime: ${days}d ${hours}h ${minutes}m ${seconds}s`,
-      footer: `> *${botFooter}*`,
+      text:
+`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+  ⏱️ *${(botName || "ULTRA GURU MD").toUpperCase()}* ⏱️
+      _Uptime & Status Check_
+꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+
+  ⏳ *Runtime* ›  ${monospace(`${days}d ${hours}h ${minutes}m ${seconds}s`)}
+  🟢 *Status*  ›  Running Smoothly
+  💡 *Session* ›  Active & Stable`,
+      footer: `> ✨ _${botFooter}_`,
       buttons: [
         { id: `${botPrefix}ping`, text: "⚡ Ping" },
         {
