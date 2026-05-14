@@ -245,7 +245,11 @@ ${categoryLines}
           },
         },
       };
-      await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      try {
+        await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      } catch (_) {
+        await Gifted.sendMessage(from, { text: menus.trim() }, { quoted: mek });
+      }
       await react("✅");
     } catch (e) {
       console.error(e);
@@ -360,7 +364,11 @@ ${expiryBannerList}
           },
         },
       };
-      await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      try {
+        await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      } catch (_) {
+        await Gifted.sendMessage(from, { text: list.trim() }, { quoted: mek });
+      }
       await react("✅");
     } catch (e) {
       console.error(e);
@@ -513,7 +521,11 @@ gmd(
           },
         },
       };
-      await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      try {
+        await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      } catch (_) {
+        await Gifted.sendMessage(from, { text: menuText.trim() }, { quoted: mek });
+      }
       await react("✅");
     } catch (e) {
       console.error(e);
