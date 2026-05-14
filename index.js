@@ -135,13 +135,17 @@ app.get("/", (req, res) => res.sendFile(__dirname + "/guru/gifted.html"));
 app.get("/health", (req, res) =>
     res.status(200).json({ status: "alive", uptime: process.uptime() }),
 );
-const server = app.listen(PORT, () => console.log(`✅ Server Running on Port: ${PORT}`));
+const server = app.listen(PORT, "0.0.0.0", () => console.log(`✅ Server Running on Port: ${PORT}`));
 server.on("error", (err) => {
     if (err.code === "EADDRINUSE") {
         console.warn(`⚠️ Port ${PORT} already in use — retrying in 3s...`);
         setTimeout(() => {
-            server.close();
-            app.listen(PORT, () => console.log(`✅ Server Running on Port: ${PORT}`));
+            server.close(() => {
+                const retryServer = app.listen(PORT, "0.0.0.0", () => console.log(`✅ Server Running on Port: ${PORT}`));
+                retryServer.on("error", (retryErr) => {
+                    console.error("Express server retry error:", retryErr.message);
+                });
+            });
         }, 3000);
     } else {
         console.error("Express server error:", err.message);

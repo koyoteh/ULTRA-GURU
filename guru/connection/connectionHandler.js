@@ -10,8 +10,8 @@ const { setupVVTracker } = require("../gmdFunctions2");
 
 const RECONNECT_DELAY = 5000;
 const MAX_RECONNECT_ATTEMPTS = 50;
-const WATCHDOG_INTERVAL = 90000;
-const WATCHDOG_TIMEOUT = 20000;
+const WATCHDOG_INTERVAL = 120000;
+const WATCHDOG_TIMEOUT = 45000;
 
 let reconnectAttempts = 0;
 let channelReactListenerActive = false;
@@ -331,9 +331,19 @@ const setupConnectionHandler = (
                     process.exit(1);
                     break;
 
+                case DisconnectReason.restartRequired:
+                    console.log("🔄 WhatsApp restart signal received — reconnecting quickly...");
+                    if (!isReconnecting) {
+                        isReconnecting = true;
+                        setTimeout(() => {
+                            isReconnecting = false;
+                            startGifted();
+                        }, 1500);
+                    }
+                    break;
+
                 case DisconnectReason.connectionClosed:
                 case DisconnectReason.connectionLost:
-                case DisconnectReason.restartRequired:
                     console.log("🔄 Transient disconnect — reconnecting...");
                     handleReconnect();
                     break;
