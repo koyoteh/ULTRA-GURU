@@ -40,7 +40,7 @@ async function loadSession() {
     console.log(`🖥️ Detected Environment: ${hostEnv.toUpperCase()}`);
 
     try {
-        // Clear old session credential files (keep .db files used by SQLite auth)
+        // Clear old credential files (keep .db files used by SQLite auth)
         if (fs.existsSync(sessionDir)) {
             const allFiles = fs.readdirSync(sessionDir);
             allFiles.forEach(f => {
@@ -50,16 +50,40 @@ async function loadSession() {
             });
         }
 
-        const sessionId = config.SESSION_ID;
+        let sessionId = config.SESSION_ID;
 
         if (!sessionId || typeof sessionId !== 'string' || sessionId.trim() === '') {
-            console.error("╔══════════════════════════════════════════════════════════╗");
-            console.error("║  ❌  SESSION_ID is not set!                              ║");
-            console.error("║  Add SESSION_ID to your environment variables and        ║");
-            console.error("║  restart the bot.                                        ║");
-            console.error("║  Format:  SESSION_ID=GURU~xxxxxxxxxxxxxxxx...            ║");
-            console.error("╚══════════════════════════════════════════════════════════╝");
-            process.exit(1);
+            if (process.stdin.isTTY) {
+                // Interactive terminal — let user paste the session ID
+                const readline = require('readline');
+                const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+                console.log(`
+╔══════════════════════════════════════════════════════════════╗
+║           📱  ULTRA GURU MD — SESSION SETUP                  ║
+╠══════════════════════════════════════════════════════════════╣
+║  Paste your SESSION_ID and press Enter.                      ║
+║  Format:  GURU~xxxxxxxx...  or  Gifted~xxxxxxxx...           ║
+╚══════════════════════════════════════════════════════════════╝`);
+                sessionId = await new Promise((resolve) => {
+                    rl.question('\n> SESSION_ID: ', (answer) => {
+                        rl.close();
+                        resolve(answer.trim());
+                    });
+                });
+                if (!sessionId) {
+                    console.error('❌ No SESSION_ID entered. Exiting.');
+                    process.exit(1);
+                }
+            } else {
+                // Non-interactive (panel/deployment) — require env var
+                console.error("╔══════════════════════════════════════════════════════════╗");
+                console.error("║  ❌  SESSION_ID is not set!                              ║");
+                console.error("║  Add SESSION_ID to your environment variables and        ║");
+                console.error("║  restart the bot.                                        ║");
+                console.error("║  Format:  SESSION_ID=GURU~xxxxxxxxxxxxxxxx...            ║");
+                console.error("╚══════════════════════════════════════════════════════════╝");
+                process.exit(1);
+            }
         }
 
         console.log("📦 SESSION_ID found — loading session...");
@@ -201,10 +225,11 @@ async function useSQLiteAuthState(databasePath) {
     };
 
     if (initialCreds) {
-        writeData('creds', initialCreds);
-        try {
-            fs.unlinkSync(credsPath);
-        } catch (e) {}
+        const existingCreds = readData('creds');
+        if (!existingCreds) {
+            writeData('creds', initialCreds);
+        }
+        try { fs.unlinkSync(credsPath); } catch (e) {}
     }
 
     const creds = readData('creds') || initAuthCreds();

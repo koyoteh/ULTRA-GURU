@@ -247,22 +247,18 @@ async function startGifted() {
 > _Note: Bot may take a few seconds/minutes to sync._
 > ✨ _${s.CAPTION || d.CAPTION}_`;
 
+                            const destJid = jidNormalizedUser(Gifted.user.id);
+                            let ctx = {};
+                            try {
+                                ctx = await createContext(
+                                    s.BOT_NAME || d.BOT_NAME,
+                                    { title: "BOT INTEGRATED", body: "Status: Ready for Use" },
+                                );
+                            } catch (_) {}
                             await Gifted.sendMessage(
-                                Gifted.user.id,
-                                {
-                                    text: connectionMsg,
-                                    ...(await createContext(
-                                        s.BOT_NAME || d.BOT_NAME,
-                                        {
-                                            title: "BOT INTEGRATED",
-                                            body: "Status: Ready for Use",
-                                        },
-                                    )),
-                                },
-                                {
-                                    disappearingMessagesInChat: true,
-                                    ephemeralExpiration: 300,
-                                },
+                                destJid,
+                                { text: connectionMsg, ...ctx },
+                                { disappearingMessagesInChat: true, ephemeralExpiration: 300 },
                             );
                         }
                     } catch (err) {
