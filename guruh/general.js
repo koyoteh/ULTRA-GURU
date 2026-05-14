@@ -407,137 +407,117 @@ ${expiryBannerList}
   },
 );
 
+const CAT_ICONS = {
+  general: "🌐", owner: "👑", group: "👥", ai: "🤖",
+  downloader: "📥", tools: "🔧", search: "🔍", games: "🎮",
+  fun: "🎉", religion: "🕌", sticker: "🖼️", converter: "🔄",
+  settings: "⚙️", media: "📸", notes: "📝", channels: "📢",
+  sports: "⚽", extras: "✨", texttools: "🔡", restrictions: "🚫",
+};
+
+const NUM_EMOJIS = ["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟",
+  "1️⃣1️⃣","1️⃣2️⃣","1️⃣3️⃣","1️⃣4️⃣","1️⃣5️⃣","1️⃣6️⃣","1️⃣7️⃣","1️⃣8️⃣","1️⃣9️⃣","2️⃣0️⃣"];
+
+function buildCategorizedMenu(commands) {
+  const categorized = {};
+  for (const cmd of commands) {
+    if (!cmd.pattern || cmd.dontAddCommandList) continue;
+    const cat = (cmd.category || "general").toLowerCase();
+    if (!categorized[cat]) categorized[cat] = [];
+    categorized[cat].push({
+      pattern: cmd.pattern,
+      description: cmd.description || "",
+      isBody: cmd.on === "body",
+    });
+  }
+  for (const cat of Object.keys(categorized)) {
+    categorized[cat].sort((a, b) => a.pattern.localeCompare(b.pattern));
+  }
+  return categorized;
+}
+
 gmd(
   {
     pattern: "menu",
     aliases: ["help", "men", "allmenu"],
-    react: "🪀",
+    react: "📜",
     category: "general",
-    description: "Fetch bot main menu",
+    description: "Browse commands by category — reply with a number",
   },
   async (from, Gifted, conText) => {
     const {
-      mek,
-      sender,
-      react,
-      pushName,
-      botPic,
-      botMode,
-      botVersion,
-      botName,
-      botFooter,
-      timeZone,
-      botPrefix,
-      newsletterJid,
-      reply,
+      mek, sender, react, pushName, botPic, botMode, botVersion,
+      botName, botFooter, timeZone, botPrefix, newsletterJid, reply,
     } = conText;
     try {
-      function formatUptime(seconds) {
-        const days = Math.floor(seconds / (24 * 60 * 60));
-        seconds %= 24 * 60 * 60;
-        const hours = Math.floor(seconds / (60 * 60));
-        seconds %= 60 * 60;
-        const minutes = Math.floor(seconds / 60);
-        seconds = Math.floor(seconds % 60);
-        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      function formatUptime(s) {
+        const d = Math.floor(s / 86400); s %= 86400;
+        const h = Math.floor(s / 3600); s %= 3600;
+        const m = Math.floor(s / 60);
+        return `${d}d ${h}h ${m}m`;
       }
 
       const now = new Date();
-      const date = new Intl.DateTimeFormat("en-GB", {
-        timeZone: timeZone,
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(now);
-
-      const time = new Intl.DateTimeFormat("en-GB", {
-        timeZone: timeZone,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      }).format(now);
-
-      const uptime = formatUptime(process.uptime());
-      const regularCmds = commands.filter((c) => c.pattern && !c.on && !c.dontAddCommandList);
-      const bodyCmds = commands.filter((c) => c.pattern && c.on === "body" && !c.dontAddCommandList);
-      const totalCommands = regularCmds.length + bodyCmds.length;
-
-      const categorized = commands.reduce((menu, gmd) => {
-        if (gmd.pattern && !gmd.dontAddCommandList) {
-          if (!menu[gmd.category]) menu[gmd.category] = [];
-          menu[gmd.category].push({
-            pattern: gmd.pattern,
-            isBody: gmd.on === "body",
-          });
-        }
-        return menu;
-      }, {});
-
-      const sortedCategories = Object.keys(categorized).sort((a, b) =>
-        a.localeCompare(b),
-      );
-      for (const cat of sortedCategories) {
-        categorized[cat].sort((a, b) => b.pattern.length - a.pattern.length);
-      }
+      const uptime = formatUptime(Math.floor(process.uptime()));
+      const totalCmds = commands.filter(c => c.pattern && !c.dontAddCommandList).length;
 
       const { getSetting: getSettingMenu } = require("../guru/database/settings");
-      let expiryBannerMenu = "  ♾️  *LIFETIME LICENSE*\n  ✅  _No expiry set · Always active_";
+      let expiryLine = "♾️ _Lifetime License · Always Active_";
       try {
         const expiryRaw = await getSettingMenu("BOT_EXPIRY_DATE");
         if (expiryRaw) {
-          const expD = new Date(expiryRaw);
-          const dLeft = Math.ceil((expD - new Date()) / (1000 * 60 * 60 * 24));
-          if (dLeft <= 0) expiryBannerMenu = `  🔴  *EXPIRED*\n  ❌  _License ended · ${expD.toDateString()}_`;
-          else if (dLeft <= 7) expiryBannerMenu = `  🟡  *EXPIRY SOON* · _${dLeft} day(s) left!_\n  ⚠️  _Expires: ${expD.toDateString()}_`;
-          else expiryBannerMenu = `  🟢  *ACTIVE* · _${dLeft} days remaining_\n  📅  _Expires: ${expD.toDateString()}_`;
+          const exp = new Date(expiryRaw);
+          const dLeft = Math.ceil((exp - now) / 86400000);
+          if (dLeft <= 0) expiryLine = `🔴 _License Expired · ${exp.toDateString()}_`;
+          else if (dLeft <= 7) expiryLine = `🟡 _Expiring Soon · ${dLeft} day(s) left_`;
+          else expiryLine = `🟢 _Active · ${dLeft} days remaining_`;
         }
       } catch {}
 
-      const catIcons2 = {
-        general: "🌐", owner: "👑", group: "👥", ai: "🤖",
-        downloader: "📥", tools: "🔧", search: "🔍", games: "🎮",
-        fun: "🎉", religion: "🕌", sticker: "🖼️", converter: "🔄",
-        settings: "⚙️", media: "📸",
-      };
+      const categorized = buildCategorizedMenu(commands);
+      const sortedCats = Object.keys(categorized).sort((a, b) => {
+        const ORDER = ["general","ai","downloader","tools","search","games","group","owner","settings","fun","converter","religion","texttools","notes","channels","sports","extras","restrictions","sticker","media"];
+        const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
 
-      let header =
+      const catLines = sortedCats.map((cat, i) => {
+        const icon = CAT_ICONS[cat] || "⚡";
+        const count = categorized[cat].length;
+        const num = NUM_EMOJIS[i] || `${i + 1}.`;
+        const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+        const padLabel = label.padEnd(12, " ");
+        return `  ${num}  ${icon}  *${padLabel}*  ·  _${count} cmds_`;
+      }).join("\n");
+
+      const menuText =
 `꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
-  ⚡ _The Ultimate WhatsApp Bot_ ⚡
-  🤖 *${(botName || "ULTRA GURU MD").toUpperCase()}* 🤖
+  🤖 *${(botName || "ULTRA GURU MD").toUpperCase()}*
+  ⚡ _The Ultimate WhatsApp Bot_
 ꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
   🔰 *GᴜʀᴜTᴇᴄʜ Lᴀʙ*  ·  _Official Build_
-━━━━━━ 🔑 *LICENSE STATUS* ━━━━━━
-${expiryBannerMenu}
+  ${expiryLine}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ༄ 📦 *Version* ›  ${monospace("v" + (botVersion || "5.0.0"))}
-  ༄ ⏱️ *Uptime*  ›  ${monospace(uptime)}
-  ༄ ⚡ *Prefix*  ›  ${monospace(botPrefix)}
-  ༄ 👤 *User*    ›  ${monospace(pushName)}
-  ༄ ⚙️ *Mode*    ›  ${monospace((botMode || "public").toUpperCase())}
-  ༄ 📊 *Cmds*    ›  ${monospace(totalCommands.toString())}
-  ༄ 🕒 *Time*    ›  ${monospace(time)}
-  ༄ 📅 *Date*    ›  ${monospace(date)}
-  ༄ 🌍 *Zone*    ›  ${monospace(timeZone)}
-  ༄ 🤖 *Bot*     ›  ${monospace(botName || "ULTRA GURU")}
-  ༄ 💾 *RAM*     ›  ${monospace(ram)}
-▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬${readmore}\n\n`;
+  ༄ ⏱️  *Uptime*  ›  ${monospace(uptime)}
+  ༄ ⚡  *Prefix*  ›  ${monospace(botPrefix)}
+  ༄ 👤  *User*    ›  ${monospace(pushName)}
+  ༄ ⚙️  *Mode*    ›  ${monospace((botMode || "public").toUpperCase())}
+  ༄ 📊  *Cmds*    ›  ${monospace(totalCmds + " loaded")}
+  ༄ 📦  *Version* ›  ${monospace("v" + (botVersion || "5.0.0"))}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📂  *COMMAND CATEGORIES*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      const formatCategory = (category, gmds) => {
-        const icon = catIcons2[category.toLowerCase()] || "⚡";
-        let catText = `\n꧁༺═ ${icon} *${category.toUpperCase()}* ════════༻꧂\n`;
-        gmds.forEach((gmd) => {
-          const prefix = gmd.isBody ? "" : botPrefix;
-          catText += `  ༄ ${monospace(prefix + gmd.pattern)}\n`;
-        });
-        catText += `꧁༺═══════════════════════༻꧂\n`;
-        return catText;
-      };
+${catLines}
 
-      let menuText = header;
-      for (const category of sortedCategories) {
-        menuText += formatCategory(category, categorized[category]);
-      }
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  💬  _Reply with a number (1–${sortedCats.length})_
+  💬  _to view that category's commands_
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+> ✨ _${botFooter}_`;
 
       const giftedMess = {
         image: { url: botPic },
@@ -562,6 +542,93 @@ ${expiryBannerMenu}
     } catch (e) {
       console.error(e);
       reply(`${e}`);
+    }
+  },
+);
+
+gmd(
+  {
+    on: "body",
+    pattern: /^\s*([1-9]|1\d|20)\s*$/,
+    dontAddCommandList: true,
+    category: "general",
+  },
+  async (from, Gifted, conText) => {
+    const {
+      mek, sender, react, pushName, botPic, botName, botFooter,
+      botPrefix, newsletterJid, reply, body,
+    } = conText;
+    try {
+      const num = parseInt((body || "").trim(), 10);
+      if (!num || isNaN(num)) return;
+
+      const categorized = buildCategorizedMenu(commands);
+      const sortedCats = Object.keys(categorized).sort((a, b) => {
+        const ORDER = ["general","ai","downloader","tools","search","games","group","owner","settings","fun","converter","religion","texttools","notes","channels","sports","extras","restrictions","sticker","media"];
+        const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
+
+      if (num < 1 || num > sortedCats.length) return;
+
+      const cat = sortedCats[num - 1];
+      const cmds = categorized[cat];
+      const icon = CAT_ICONS[cat] || "⚡";
+      const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+      const numEmoji = NUM_EMOJIS[num - 1] || `${num}.`;
+
+      const CARD_WIDTH = 38;
+      const divider  = "─".repeat(CARD_WIDTH);
+      const top      = `╔${"═".repeat(CARD_WIDTH)}╗`;
+      const titleRow = `║  ${numEmoji}  ${icon}  ${label.toUpperCase()} COMMANDS`.padEnd(CARD_WIDTH + 1) + "║";
+      const countRow = `║  📊 ${cmds.length} commands in this category`.padEnd(CARD_WIDTH + 1) + "║";
+      const mid      = `╠${"═".repeat(CARD_WIDTH)}╣`;
+      const bot      = `╚${"═".repeat(CARD_WIDTH)}╝`;
+
+      const cmdLines = cmds.map(cmd => {
+        const prefix = cmd.isBody ? "" : botPrefix;
+        const pat = monospace(prefix + cmd.pattern);
+        const desc = cmd.description
+          ? cmd.description.length > 22 ? cmd.description.slice(0, 20) + "…" : cmd.description
+          : "—";
+        return `║  ◈ ${pat}\n║     › _${desc}_`;
+      }).join("\n" + `║  ${divider.slice(0, 34)}` + "\n");
+
+      const card =
+`${top}
+${titleRow}
+${countRow}
+${mid}
+${cmdLines}
+${bot}
+  _Reply_ ${monospace(botPrefix + "menu")} _to go back_
+> ✨ _${botFooter}_`;
+
+      const giftedMess = {
+        image: { url: botPic },
+        caption: card.trim(),
+        contextInfo: {
+          mentionedJid: [sender],
+          forwardingScore: 5,
+          isForwarded: true,
+          forwardedNewsletterMessageInfo: {
+            newsletterJid: newsletterJid,
+            newsletterName: botName,
+            serverMessageId: 0,
+          },
+        },
+      };
+      try {
+        await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+      } catch (_) {
+        await Gifted.sendMessage(from, { text: card.trim() }, { quoted: mek });
+      }
+      await react("✅");
+    } catch (e) {
+      console.error(e);
     }
   },
 );
