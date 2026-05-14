@@ -5,6 +5,13 @@ if (!globalThis.crypto) {
     globalThis.crypto = webcrypto;
 }
 
+if (typeof File === "undefined") {
+    try {
+        const { File } = require("buffer");
+        if (File) globalThis.File = File;
+    } catch (_) {}
+}
+
 require("./guru/gmdHelpers");
 
 const {
