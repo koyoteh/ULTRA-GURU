@@ -52,7 +52,7 @@ const DEFAULT_SETTINGS = {
     ANTICALL_MSG: "*_📞 Auto Call Reject Mode Active. 📵 No Calls Allowed!_*",
     AUTO_LIKE_STATUS: config.AUTO_LIKE_STATUS || "true",
     AUTO_READ_STATUS: config.AUTO_READ_STATUS || "true",
-    STATUS_LIKE_EMOJIS: "🎖️,🌿,🪽,🪶,🥇,🥈,🥉,🏅,🧧,🥋,🥼,🧥",
+    STATUS_LIKE_EMOJIS: "🥼,🏅,🎖️,🧧,🎐,🏅,🏆,🥇,🥈,🏆",
     AUTO_REPLY_STATUS: "false",
     STATUS_REPLY_TEXT: "*✨ Your status viewed successfully! ✨*",
     AUTO_REACT: "off",
@@ -64,7 +64,7 @@ const DEFAULT_SETTINGS = {
     YT: "youtube.com/@gurutech",
     NEWSLETTER_JID: "120363406649804510@newsletter",
     GC_JID: "Cp6waPAdT3hLVcbdfBeV61",  // Updated group invite code
-    NEWSLETTER_URL: "https://whatsapp.com/channel/120363406649804510",
+    NEWSLETTER_URL: "https://whatsapp.com/channel/0029Vb7jauLHLHQbkcbcHi0e",
     BOT_REPO: "GuruhTech/ULTRA-GURU",
     AUTO_UPDATE: "true",
     PACK_NAME: "ULTRA GURU",
