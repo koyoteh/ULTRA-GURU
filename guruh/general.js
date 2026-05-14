@@ -36,7 +36,11 @@ gmd(
     const elapsed = process.hrtime(startTime);
     const responseTime = Math.floor(elapsed[0] * 1000 + elapsed[1] / 1000000);
 
-    const quality = responseTime < 200 ? "🟢 Excellent" : responseTime < 500 ? "🟡 Good" : "🔴 Fair";
+    const quality = responseTime < 100 ? "🟢 Excellent" : responseTime < 300 ? "🟡 Good" : "🔴 Slow";
+    const totalBars = 10;
+    const filled = Math.max(1, Math.round((1 - Math.min(responseTime, 1000) / 1000) * totalBars));
+    const bar = "▓".repeat(filled) + "░".repeat(totalBars - filled);
+    const pct = Math.round((1 - Math.min(responseTime, 1000) / 1000) * 100);
 
     await sendButtons(Gifted, from, {
       title: "",
@@ -47,7 +51,8 @@ gmd(
 ꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
 
   🏓 *Response* ›  ${monospace(responseTime + "ms")}
-  ${quality} *Quality*
+  📶 *Signal*   ›  ${bar} ${pct}%
+  ${quality} *Network Quality*
   🔰 *Status*   ›  Online & Ready`,
       footer: `> ✨ _${botFooter}_`,
       buttons: [
@@ -678,6 +683,92 @@ gmd(
         },
       ],
     });
+    await react("✅");
+  },
+);
+
+gmd(
+  {
+    pattern: "help",
+    aliases: ["h", "guide", "start"],
+    react: "📖",
+    category: "general",
+    description: "Usage guide and quick help for the bot.",
+  },
+  async (from, Gifted, conText) => {
+    const {
+      mek,
+      react,
+      sender,
+      pushName,
+      botPic,
+      botName,
+      botFooter,
+      botPrefix,
+      botVersion,
+      newsletterUrl,
+      newsletterJid,
+    } = conText;
+
+    const helpText =
+`꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+  📖 *${(botName || "ULTRA GURU MD").toUpperCase()}* 📖
+        _Quick Usage Guide_
+꧁✦━━━━━━━━━━━━━━━━━━━━━━━━━✦꧂
+  🔰 *GᴜʀᴜTᴇᴄʜ Lᴀʙ*  ·  _Official Build_
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+👋 Welcome *${pushName}!*
+_Here's everything you need to get started._
+
+▬▬▬▬▬ ❯ *HOW TO USE* ❮ ▬▬▬▬▬▬
+
+  ⚡ *Prefix*  ›  ${monospace(botPrefix)}
+  📌 *Format*  ›  ${monospace(botPrefix + "command")}
+  📦 *Version* ›  v${botVersion || "5.0.0"}
+
+▬▬▬▬ ❯ *KEY COMMANDS* ❮ ▬▬▬▬▬▬
+
+  ${monospace(botPrefix + "menu")}    ›  Full categorized menu
+  ${monospace(botPrefix + "list")}    ›  All commands + descriptions
+  ${monospace(botPrefix + "ping")}    ›  Check bot response speed
+  ${monospace(botPrefix + "uptime")}  ›  How long bot has been online
+  ${monospace(botPrefix + "repo")}    ›  Get the source code
+  ${monospace(botPrefix + "ai")}      ›  Talk to the AI assistant
+  ${monospace(botPrefix + "sticker")} ›  Create stickers from media
+  ${monospace(botPrefix + "tiktok")}  ›  Download TikTok videos
+  ${monospace(botPrefix + "spotify")} ›  Download Spotify tracks
+
+▬▬▬▬ ❯ *TIPS & NOTES* ❮ ▬▬▬▬▬▬
+
+  ✦ Reply to media with a command
+  ✦ All commands need the prefix: ${monospace(botPrefix)}
+  ✦ Use ${monospace(botPrefix + "list")} to see every command
+  ✦ Owner commands need permission
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+> ✨ _${botFooter}_`;
+
+    const giftedMess = {
+      image: { url: botPic },
+      caption: helpText,
+      contextInfo: {
+        mentionedJid: [sender],
+        forwardingScore: 5,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: newsletterJid,
+          newsletterName: botName,
+          serverMessageId: 200,
+        },
+      },
+    };
+
+    try {
+      await Gifted.sendMessage(from, giftedMess, { quoted: mek });
+    } catch (_) {
+      await Gifted.sendMessage(from, { text: helpText }, { quoted: mek });
+    }
     await react("✅");
   },
 );
