@@ -1,5 +1,5 @@
 
-const { getContentType, downloadContentFromMessage, downloadMediaMessage } = require('gifted-baileys');
+const { getContentType, downloadContentFromMessage, downloadMediaMessage } = require('@whiskeysockets/baileys');
 const { getLidMapping } = require('./groupCache');
 
 const standardizeJid = (jid) => {
