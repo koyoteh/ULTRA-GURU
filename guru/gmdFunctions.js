@@ -34,6 +34,9 @@ function detectHostEnvironment() {
     return 'unknown';
 }
 
+// Cloud platforms that supply SESSION_ID via environment variables only
+const CLOUD_ENVS = ['heroku', 'render', 'koyeb', 'railway'];
+
 // ============ SESSION LOADER ============
 async function loadSession() {
     const hostEnv = detectHostEnvironment();
@@ -53,15 +56,23 @@ async function loadSession() {
         let sessionId = config.SESSION_ID;
 
         if (!sessionId || typeof sessionId !== 'string' || sessionId.trim() === '') {
-            if (process.stdin.isTTY) {
-                // Interactive terminal — let user paste the session ID
+            if (CLOUD_ENVS.includes(hostEnv)) {
+                // Heroku / Render / Koyeb / Railway — must use env var
+                console.error("╔══════════════════════════════════════════════════════════╗");
+                console.error("║  ❌  SESSION_ID is not set!                              ║");
+                console.error("║  Add SESSION_ID to your platform's environment variables.║");
+                console.error("║  Format:  SESSION_ID=GURU~xxxxxxxxxxxxxxxx...            ║");
+                console.error("╚══════════════════════════════════════════════════════════╝");
+                process.exit(1);
+            } else {
+                // Panels (Katabamp, Pterodactyl), VPS, local — prompt to paste
                 const readline = require('readline');
                 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
                 console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║           📱  ULTRA GURU MD — SESSION SETUP                  ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Paste your SESSION_ID and press Enter.                      ║
+║  Paste your SESSION_ID below and press Enter.                ║
 ║  Format:  GURU~xxxxxxxx...  or  Gifted~xxxxxxxx...           ║
 ╚══════════════════════════════════════════════════════════════╝`);
                 sessionId = await new Promise((resolve) => {
@@ -74,15 +85,6 @@ async function loadSession() {
                     console.error('❌ No SESSION_ID entered. Exiting.');
                     process.exit(1);
                 }
-            } else {
-                // Non-interactive (panel/deployment) — require env var
-                console.error("╔══════════════════════════════════════════════════════════╗");
-                console.error("║  ❌  SESSION_ID is not set!                              ║");
-                console.error("║  Add SESSION_ID to your environment variables and        ║");
-                console.error("║  restart the bot.                                        ║");
-                console.error("║  Format:  SESSION_ID=GURU~xxxxxxxxxxxxxxxx...            ║");
-                console.error("╚══════════════════════════════════════════════════════════╝");
-                process.exit(1);
             }
         }
 
