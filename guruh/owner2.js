@@ -2,7 +2,7 @@
 const { gmd, commands, getSetting } = require("../guru");
 const fs = require("fs").promises;
 const fsA = require("node:fs");
-const { S_WHATSAPP_NET } = require("gifted-baileys");
+const { S_WHATSAPP_NET } = require("@whiskeysockets/baileys");
 const { Jimp } = require("jimp");
 const path = require("path");
 const moment = require("moment-timezone");
