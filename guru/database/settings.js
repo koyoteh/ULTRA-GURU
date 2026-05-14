@@ -84,6 +84,15 @@ const DEFAULT_SETTINGS = {
 
 let initialized = false;
 
+const SETTINGS_CACHE_TTL = 30000;
+let _settingsCache = null;
+let _settingsCacheTs = 0;
+
+function invalidateSettingsCache() {
+    _settingsCache = null;
+    _settingsCacheTs = 0;
+}
+
 const GROUP_ONLY_SETTINGS = [
     "WELCOME_MESSAGE",
     "GOODBYE_MESSAGE",
@@ -114,6 +123,11 @@ async function initializeSettings() {
 async function getSetting(key) {
     if (!initialized) await initializeSettings();
 
+    const now = Date.now();
+    if (_settingsCache && (now - _settingsCacheTs) < SETTINGS_CACHE_TTL) {
+        return _settingsCache[key] ?? DEFAULT_SETTINGS[key] ?? null;
+    }
+
     const record = await SettingsDB.findOne({ where: { key } });
     if (record) {
         return record.value;
@@ -135,18 +149,28 @@ async function setSetting(key, value) {
         await record.save();
     }
 
+    invalidateSettingsCache();
     return true;
 }
 
 async function getAllSettings() {
     if (!initialized) await initializeSettings();
 
+    const now = Date.now();
+    if (_settingsCache && (now - _settingsCacheTs) < SETTINGS_CACHE_TTL) {
+        return { ..._settingsCache };
+    }
+
     const records = await SettingsDB.findAll();
-    const settings = {};
+    const settings = { ...DEFAULT_SETTINGS };
     for (const record of records) {
         settings[record.key] = record.value;
     }
-    return settings;
+
+    _settingsCache = settings;
+    _settingsCacheTs = now;
+
+    return { ...settings };
 }
 
 async function resetSetting(key) {
@@ -155,6 +179,7 @@ async function resetSetting(key) {
     const defaultValue = DEFAULT_SETTINGS[key];
     if (defaultValue !== undefined) {
         await setSetting(key, defaultValue);
+        invalidateSettingsCache();
         return defaultValue;
     }
     return null;
@@ -166,6 +191,7 @@ async function resetAllSettings() {
     for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
         await setSetting(key, defaultValue);
     }
+    invalidateSettingsCache();
     return true;
 }
 

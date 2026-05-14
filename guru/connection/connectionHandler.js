@@ -17,6 +17,7 @@ let reconnectAttempts = 0;
 let channelReactListenerActive = false;
 let watchdogTimer = null;
 let isReconnecting = false;
+let isWatchdogReconnect = false;
 
 const withJitter = (ms) => ms + Math.floor(Math.random() * ms * 0.3);
 
@@ -43,9 +44,11 @@ const startWatchdog = (Gifted, startGifted) => {
             console.warn(`⚠️ Watchdog: socket unresponsive (${err.message}), forcing reconnect...`);
             clearWatchdog();
             isReconnecting = true;
+            isWatchdogReconnect = true;
             try { Gifted.end(new Error("watchdog forced reconnect")); } catch (_) {}
             setTimeout(() => {
                 isReconnecting = false;
+                isWatchdogReconnect = false;
                 startGifted();
             }, withJitter(RECONNECT_DELAY));
         }
@@ -307,6 +310,11 @@ const setupConnectionHandler = (
 
             switch (reason) {
                 case DisconnectReason.badSession:
+                    if (isWatchdogReconnect) {
+                        console.log("⚠️ Watchdog-triggered close received code 500 — reconnecting safely...");
+                        isWatchdogReconnect = false;
+                        break;
+                    }
                     console.log("❌ Bad session — deleting session file. Please re-link the bot.");
                     try {
                         await fs.remove(sessionDir);
