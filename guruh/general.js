@@ -505,7 +505,7 @@ gmd(
 
       const menuText =
 `╰► Hey, @${sender.split("@")[0]}
-╭───〔  *${(botName || "ULTRA GURU MD").toUpperCase()}*  〕──────┈⊷𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭
+╭───〔  *${(botName || "ULTRA GURU MD").toUpperCase()}*  〕──────┈⊷𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭
 ├──────────────────────
 │✵│▸ 📊 *TOTAL COMMANDS:* ${totalCmds}
 │✵│▸ ⏱️ *UPTIME:* ${uptime}
@@ -552,7 +552,7 @@ ${catLines}
 gmd(
   {
     on: "body",
-    pattern: "menucat_num_trigger",
+    pattern: /^\d{1,2}$/,
     dontAddCommandList: true,
     category: "general",
   },
@@ -586,7 +586,7 @@ gmd(
       }).join("\n> │\n");
 
       const card =
-`╭───〔 *${icon} ${label} COMMANDS* 〕──────┈⊷𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭
+`╭───〔 *${icon} ${label} COMMANDS* 〕──────┈⊷𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭𑲭
 ├──────────────────────
 │✵│▸ 📊 *TOTAL:* ${cmds.length} commands
 │✵│▸ ⚡ *PREFIX:* ${botPrefix}
