@@ -149,10 +149,35 @@ gmd(
         }
 
         try {
-            const apiUrl = `${GiftedTechApi}/api/download/facebook?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
-            const response = await axios.get(apiUrl, { timeout: 60000 });
+            let videoData = null;
+            try {
+                const apiUrl = `${GiftedTechApi}/api/download/facebook?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
+                const response = await axios.get(apiUrl, { timeout: 15000 });
+                if (response.data?.success && response.data?.result) {
+                    videoData = response.data.result;
+                }
+            } catch (_) {}
 
-            if (!response.data?.success || !response.data?.result) {
+            if (!videoData || (!videoData.hd_video && !videoData.sd_video)) {
+                try {
+                    const cobaltRes = await axios.post('https://api.cobalt.tools/api/json',
+                        { url: q },
+                        { headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, timeout: 15000 }
+                    );
+                    const cd = cobaltRes.data;
+                    let videoUrl = null;
+                    if ((cd?.status === 'stream' || cd?.status === 'redirect' || cd?.status === 'tunnel') && cd?.url) {
+                        videoUrl = cd.url;
+                    } else if (cd?.status === 'picker' && cd?.picker?.[0]?.url) {
+                        videoUrl = cd.picker[0].url;
+                    }
+                    if (videoUrl) {
+                        videoData = { title: 'Facebook Video', duration: 'Unknown', thumbnail: null, hd_video: videoUrl, sd_video: videoUrl };
+                    }
+                } catch (_) {}
+            }
+
+            if (!videoData || (!videoData.hd_video && !videoData.sd_video)) {
                 await react("❌");
                 return reply(
                     "Failed to fetch video. Please check the URL and try again.",
@@ -160,7 +185,7 @@ gmd(
             }
 
             const { title, duration, thumbnail, hd_video, sd_video } =
-                response.data.result;
+                videoData;
             const dateNow = Date.now();
             const videoUrl = hd_video || sd_video;
 
@@ -359,11 +384,10 @@ gmd(
                 "tiktokdlv4",
             ];
 
-            const t0 = Date.now();
-            const result = await Promise.any(
+            let result = await Promise.any(
                 endpoints.map(endpoint => {
                     const apiUrl = `${GiftedTechApi}/api/download/${endpoint}?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
-                    return axios.get(apiUrl, { timeout: 20000 }).then(res => {
+                    return axios.get(apiUrl, { timeout: 15000 }).then(res => {
                         if (res.data?.success && res.data?.result) {
                             return res.data.result;
                         }
@@ -371,6 +395,22 @@ gmd(
                     });
                 })
             ).catch(() => null);
+
+            if (!result) {
+                try {
+                    const tikwmRes = await axios.get(`https://www.tikwm.com/api/?url=${encodeURIComponent(q)}`, { timeout: 15000 });
+                    if (tikwmRes.data?.code === 0 && tikwmRes.data?.data) {
+                        const d = tikwmRes.data.data;
+                        result = {
+                            title: d.title || 'TikTok Video',
+                            video: d.play || d.wmplay,
+                            music: d.music,
+                            cover: d.cover,
+                            author: { name: d.author?.nickname || 'Unknown' }
+                        };
+                    }
+                } catch (_) {}
+            }
 
             if (!result) {
                 await react("❌");
@@ -529,17 +569,38 @@ gmd(
         }
 
         try {
-            const apiUrl = `${GiftedTechApi}/api/download/twitter?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
-            const response = await axios.get(apiUrl, { timeout: 60000 });
+            let twitterData = null;
+            try {
+                const apiUrl = `${GiftedTechApi}/api/download/twitter?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
+                const response = await axios.get(apiUrl, { timeout: 15000 });
+                if (response.data?.success && response.data?.result) {
+                    twitterData = response.data.result;
+                }
+            } catch (_) {}
 
-            if (!response.data?.success || !response.data?.result) {
+            if (!twitterData?.videoUrls?.length) {
+                try {
+                    const cobaltRes = await axios.post('https://api.cobalt.tools/api/json',
+                        { url: q },
+                        { headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, timeout: 15000 }
+                    );
+                    const cd = cobaltRes.data;
+                    if ((cd?.status === 'stream' || cd?.status === 'redirect' || cd?.status === 'tunnel') && cd?.url) {
+                        twitterData = { thumbnail: null, videoUrls: [{ quality: 'Best', url: cd.url }] };
+                    } else if (cd?.status === 'picker' && cd?.picker?.length) {
+                        twitterData = { thumbnail: null, videoUrls: cd.picker.map((p, i) => ({ quality: `Option ${i + 1}`, url: p.url })) };
+                    }
+                } catch (_) {}
+            }
+
+            if (!twitterData) {
                 await react("❌");
                 return reply(
                     "Failed to fetch video. Please check the URL and try again.",
                 );
             }
 
-            const { thumbnail, videoUrls } = response.data.result;
+            const { thumbnail, videoUrls } = twitterData;
 
             if (!videoUrls || videoUrls.length === 0) {
                 await react("❌");
@@ -705,22 +766,38 @@ gmd(
         }
 
         try {
-            const apiUrl = `${GiftedTechApi}/api/download/instadl?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
-            const response = await axios.get(apiUrl, { timeout: 60000 });
+            let igData = null;
+            try {
+                const apiUrl = `${GiftedTechApi}/api/download/instadl?apikey=${GiftedApiKey}&url=${encodeURIComponent(q)}`;
+                const response = await axios.get(apiUrl, { timeout: 15000 });
+                if (response.data?.success && response.data?.result) {
+                    igData = response.data.result;
+                }
+            } catch (_) {}
 
-            if (!response.data?.success || !response.data?.result) {
+            if (!igData?.download_url) {
+                try {
+                    const cobaltRes = await axios.post('https://api.cobalt.tools/api/json',
+                        { url: q },
+                        { headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }, timeout: 15000 }
+                    );
+                    const cd = cobaltRes.data;
+                    if ((cd?.status === 'stream' || cd?.status === 'redirect' || cd?.status === 'tunnel') && cd?.url) {
+                        igData = { thumbnail: null, download_url: cd.url };
+                    } else if (cd?.status === 'picker' && cd?.picker?.[0]?.url) {
+                        igData = { thumbnail: null, download_url: cd.picker[0].url };
+                    }
+                } catch (_) {}
+            }
+
+            if (!igData?.download_url) {
                 await react("❌");
                 return reply(
                     "Failed to fetch content. Please check the URL and try again.",
                 );
             }
 
-            const { thumbnail, download_url } = response.data.result;
-
-            if (!download_url) {
-                await react("❌");
-                return reply("No downloadable content found.");
-            }
+            const { thumbnail, download_url } = igData;
 
             const dateNow = Date.now();
 
