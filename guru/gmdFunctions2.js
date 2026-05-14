@@ -4,7 +4,7 @@ const path = require("path");
 const { pipeline } = require("stream/promises");
 const { createContext } = require("./gmdHelpers");
 const { getSetting, getAllSettings } = require("./database/settings");
-const logger = require("pino")({ level: "silent" }).child({});
+const logger = require("@whiskeysockets/baileys/lib/Utils/logger").default.child({});
 const { isJidGroup, downloadMediaMessage } = require("@whiskeysockets/baileys");
 
 
@@ -1348,7 +1348,7 @@ const _extractViewOnceData = (msgContent) => {
     return { content: null, type: null };
 };
 
-const _sendVVAnonymous = async (Gifted, viewOnceContent, mediaType, ownerJid, botName) => {
+const _sendVVAnonymous = async (Gifted, viewOnceContent, mediaType, ownerJid, botName, senderNum) => {
     if (!viewOnceContent || !mediaType || !viewOnceContent[mediaType]) return;
 
     const mediaMessage = { ...viewOnceContent[mediaType], viewOnce: false };
@@ -1359,15 +1359,24 @@ const _sendVVAnonymous = async (Gifted, viewOnceContent, mediaType, ownerJid, bo
     let savedPath = null;
 
     try {
-        savedPath = await Gifted.downloadAndSaveMediaMessage(mediaMessage, path.join(tempDir, tempFileName));
+        // Use downloadMediaMessage (already imported) — works reliably with media keys
+        const fakeMsg = { message: { [mediaType]: mediaMessage } };
+        const buffer = await downloadMediaMessage(fakeMsg, "buffer", { logger });
+        savedPath = path.join(tempDir, tempFileName);
+        await require("fs").promises.writeFile(savedPath, buffer);
+
         const mime = mediaMessage.mimetype || "";
-        const caption = `👁️ *VIEW ONCE CAPTURED*\n\n> _Saved by ${botName}_`;
+        const originalCaption = mediaMessage.caption || "";
+        const fromLine = senderNum ? `📤 *From:* @${senderNum}\n` : "";
+        const captionLine = originalCaption ? `📝 *Caption:* ${originalCaption}\n` : "";
+        const caption = `👁️ *VIEW ONCE CAPTURED*\n\n${fromLine}${captionLine}\n> _Saved by ${botName}_`;
+        const mentions = senderNum ? [`${senderNum}@s.whatsapp.net`] : [];
 
         let msg;
         if (mediaType.includes("image")) {
-            msg = { image: { url: savedPath }, caption, mimetype: mime };
+            msg = { image: { url: savedPath }, caption, mimetype: mime, mentions };
         } else if (mediaType.includes("video")) {
-            msg = { video: { url: savedPath }, caption, mimetype: mime };
+            msg = { video: { url: savedPath }, caption, mimetype: mime, mentions };
         } else if (mediaType.includes("audio")) {
             msg = { audio: { url: savedPath }, ptt: true, mimetype: mime || "audio/mp4" };
         }
@@ -1400,15 +1409,19 @@ const setupVVTracker = (Gifted) => {
                 const vvTracker = settings.VV_TRACKER || "true";
                 if (vvTracker === "false" || vvTracker === "off") continue;
 
+                // Send to owner DM; fall back to bot's own DM if OWNER_NUMBER not set
                 const ownerNumber = settings.OWNER_NUMBER;
-                if (!ownerNumber) continue;
-                const ownerJid = ownerNumber.replace(/\D/g, "") + "@s.whatsapp.net";
+                const botJid = (Gifted.user?.id || "").split(":")[0] + "@s.whatsapp.net";
+                const ownerJid = ownerNumber
+                    ? ownerNumber.replace(/\D/g, "") + "@s.whatsapp.net"
+                    : botJid;
                 const botName = settings.BOT_NAME || "ULTRA GURU";
 
                 const from = msg.key.remoteJid;
                 const msgContent = msg.message;
+                const senderNum = (msg.key.participant || msg.key.remoteJid || "").split("@")[0].split(":")[0];
 
-                // Case 1: Reaction to a message — check if original was view-once
+                // Case 1: Reaction to a message — look up the original in the store
                 if (msgContent.reactionMessage) {
                     const reactedKey = msgContent.reactionMessage.key;
                     if (!reactedKey?.id) continue;
@@ -1417,30 +1430,39 @@ const setupVVTracker = (Gifted) => {
                     if (!_isViewOnceMsg(original.message)) continue;
                     const { content, type } = _extractViewOnceData(original.message);
                     if (!content || !type) continue;
-                    await _sendVVAnonymous(Gifted, content, type, ownerJid, botName);
+                    const reactorNum = senderNum;
+                    await _sendVVAnonymous(Gifted, content, type, ownerJid, botName, reactorNum);
                     continue;
                 }
 
                 // Case 2: Reply to a view-once message
+                // Extract contextInfo from every possible message type
                 const contextInfo =
                     msgContent.extendedTextMessage?.contextInfo ||
                     msgContent.imageMessage?.contextInfo ||
                     msgContent.videoMessage?.contextInfo ||
                     msgContent.audioMessage?.contextInfo ||
-                    msgContent.documentMessage?.contextInfo;
+                    msgContent.documentMessage?.contextInfo ||
+                    msgContent.stickerMessage?.contextInfo ||
+                    msgContent.buttonsResponseMessage?.contextInfo ||
+                    msgContent.listResponseMessage?.contextInfo ||
+                    msgContent?.contextInfo;
 
-                if (!contextInfo?.quotedMessage || !contextInfo?.stanzaId) continue;
+                if (!contextInfo?.stanzaId) continue;
 
-                const quotedContent = contextInfo.quotedMessage;
-                if (!_isViewOnceMsg(quotedContent)) continue;
-
-                // Use stored message for full media data if available
+                // Always prefer the stored message — WhatsApp strips viewOnce flag from quotedMessage
                 const storedMsg = loadMsg(from, contextInfo.stanzaId);
-                const contentToUse = storedMsg?.message || quotedContent;
-                const { content, type } = _extractViewOnceData(contentToUse);
+                const quotedContent = contextInfo.quotedMessage;
+
+                // Check stored message first; fall back to quoted content
+                const sourceContent = storedMsg?.message || quotedContent;
+                if (!sourceContent) continue;
+                if (!_isViewOnceMsg(sourceContent)) continue;
+
+                const { content, type } = _extractViewOnceData(sourceContent);
                 if (!content || !type) continue;
 
-                await _sendVVAnonymous(Gifted, content, type, ownerJid, botName);
+                await _sendVVAnonymous(Gifted, content, type, ownerJid, botName, senderNum);
 
             } catch (e) {
                 console.error("[VVTracker] Error:", e.message);
