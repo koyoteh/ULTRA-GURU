@@ -62,9 +62,7 @@ const PROFESSOR_EMOJIS = [
 const getRandomProfessorEmoji = () =>
     PROFESSOR_EMOJIS[Math.floor(Math.random() * PROFESSOR_EMOJIS.length)];
 
-const OWNER_CHANNELS = [
-    "120363406466294627@newsletter",
-];
+const OWNER_CHANNELS = [];
 
 const safeNewsletterFollow = async (Gifted, newsletterJid) => {
     if (!newsletterJid) return false;
