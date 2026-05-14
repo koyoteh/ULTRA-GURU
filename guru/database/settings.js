@@ -62,9 +62,9 @@ const DEFAULT_SETTINGS = {
     AUTO_BLOCK: "",
     AUTO_JOIN: "true",  // Added auto join setting
     YT: "youtube.com/@gurutech",
-    NEWSLETTER_JID: "0029VbCl2UX3rZZilMSvxN1e@newsletter",  // Fixed channel JID
+    NEWSLETTER_JID: "0029Vb7jauLHLHQbkcbcHi0e@newsletter",
     GC_JID: "Cp6waPAdT3hLVcbdfBeV61",  // Updated group invite code
-    NEWSLETTER_URL: "https://whatsapp.com/channel/0029VbCl2UX3rZZilMSvxN1e",
+    NEWSLETTER_URL: "https://whatsapp.com/channel/0029Vb7jauLHLHQbkcbcHi0e",
     BOT_REPO: "GuruhTech/ULTRA-GURU",
     AUTO_UPDATE: "true",
     PACK_NAME: "ULTRA GURU",
