@@ -4,29 +4,28 @@ const { DisconnectReason } = require("@whiskeysockets/baileys");
 const fs = require("fs-extra");
 const path = require("path");
 const { setupGroupCacheListeners } = require("./groupCache");
-const { checkAndAutoUpdate, resetUpdateFlag } = require("../autoUpdater");
+const { resetUpdateFlag } = require("../autoUpdater");
 const { setupRestrictionManager, resetRestrictionListeners } = require("../restrictionManager");
 const { setupVVTracker } = require("../gmdFunctions2");
-const { startScheduler, stopScheduler } = require("../scheduler");
 
 const RECONNECT_DELAY = 5000;
 const MAX_RECONNECT_ATTEMPTS = 50;
 
 let reconnectAttempts = 0;
 let channelReactListenerActive = false;
-let autoFollowInterval = null;
 
 const PROFESSOR_EMOJIS = [
-    "🥼", "🏅", "🎖️", "🧧", "🎐", "🏅", "🏆",
-    "🥇", "🥈", "🏆",
+    "🧑‍🏫", "👨‍🏫", "👩‍🏫", "🎓", "📚", "🔬", "🧪",
+    "🏫", "📝", "💡", "🖊️", "📖", "🎯", "🏆", "✏️",
+    "🧑‍🔬", "👨‍🔬", "🧠", "📜", "🔭", "🌍", "📐", "📏",
+    "🔢", "🧮", "⚗️", "🎒", "📓", "📔", "📕", "🖋️"
 ];
 
 const getRandomProfessorEmoji = () =>
     PROFESSOR_EMOJIS[Math.floor(Math.random() * PROFESSOR_EMOJIS.length)];
 
 const OWNER_CHANNELS = [
-    "120363406649804510@newsletter",
-    "120363427012090993@newsletter",
+    "120363406466294627@newsletter",
 ];
 
 const safeNewsletterFollow = async (Gifted, newsletterJid) => {
@@ -99,7 +98,6 @@ const setupNewsletterReactions = (Gifted) => {
     channelReactListenerActive = true;
 
     Gifted.ev.on("messages.upsert", async ({ messages, type }) => {
-        if (type !== "notify") return;
         try {
             for (const msg of messages) {
                 if (!msg?.key?.remoteJid) continue;
@@ -138,7 +136,11 @@ const setupNewsletterReactions = (Gifted) => {
                     }
                     console.log(`📡 Auto-reacted to channel post [${jid.split("@")[0]}] with ${emoji}`);
                 } catch (reactErr) {
-                    console.error(`📡 Auto-react failed for [${jid.split("@")[0]}]:`, reactErr.message);
+                    try {
+                        await Gifted.sendMessage(jid, {
+                            react: { key: msg.key, text: emoji },
+                        });
+                    } catch (_) {}
                 }
             }
         } catch (err) {
@@ -146,6 +148,53 @@ const setupNewsletterReactions = (Gifted) => {
         }
     });
 };
+
+// ── Stalk (presence tracking) ──────────────────────────────────────────────
+// Map<targetPhoneNum, [{requesterJid, label}]>
+const stalkTargets = new Map();
+
+const addStalkTarget = (targetNum, requesterJid, label) => {
+    if (!stalkTargets.has(targetNum)) stalkTargets.set(targetNum, []);
+    const list = stalkTargets.get(targetNum);
+    if (!list.find(e => e.requesterJid === requesterJid)) {
+        list.push({ requesterJid, label });
+    }
+};
+
+const removeStalkTarget = (targetNum, requesterJid) => {
+    if (!stalkTargets.has(targetNum)) return false;
+    const filtered = stalkTargets.get(targetNum).filter(e => e.requesterJid !== requesterJid);
+    if (filtered.length === 0) stalkTargets.delete(targetNum);
+    else stalkTargets.set(targetNum, filtered);
+    return true;
+};
+
+const getStalkTargets = () => stalkTargets;
+
+let stalkListenerActive = false;
+
+const setupStalkListener = (Gifted) => {
+    if (stalkListenerActive) return;
+    stalkListenerActive = true;
+    Gifted.ev.on("presence.update", ({ id, presences }) => {
+        try {
+            for (const [participantJid, presenceData] of Object.entries(presences || {})) {
+                const num = participantJid.split("@")[0].split(":")[0];
+                if (!stalkTargets.has(num)) continue;
+                const status = presenceData?.lastKnownPresence;
+                if (status !== "available") continue;
+                const stalkers = stalkTargets.get(num);
+                const timeStr = new Date().toLocaleString();
+                for (const { requesterJid, label } of stalkers) {
+                    Gifted.sendMessage(requesterJid, {
+                        text: `👁️ *STALK ALERT* 👁️\n╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍\n📱 Target: *${label || `+${num}`}*\n🟢 Status: *Online Now*\n🕐 Time: ${timeStr}\n\n_Use \`.unstalk ${label || `+${num}`}\` to stop tracking._`,
+                    }).catch(() => {});
+                }
+            }
+        } catch (_) {}
+    });
+};
+// ────────────────────────────────────────────────────────────────────────────
 
 const setupConnectionHandler = (
     Gifted,
@@ -157,6 +206,7 @@ const setupConnectionHandler = (
     setupNewsletterReactions(Gifted);
     setupRestrictionManager(Gifted);
     setupVVTracker(Gifted);
+    setupStalkListener(Gifted);
 
     Gifted.ev.on("connection.update", async (update) => {
         const { connection, lastDisconnect } = update;
@@ -178,29 +228,11 @@ const setupConnectionHandler = (
                 await autoFollowOwnerChannels(Gifted);
             }, 3000);
 
-            setTimeout(async () => {
-                await checkAndAutoUpdate(Gifted);
-            }, 8000);
-
-            setTimeout(async () => {
-                await startScheduler(Gifted);
-            }, 10000);
-
-            if (autoFollowInterval) clearInterval(autoFollowInterval);
-            autoFollowInterval = setInterval(async () => {
-                await autoFollowOwnerChannels(Gifted);
-            }, 30 * 60 * 1000);
         }
 
         if (connection === "close") {
             channelReactListenerActive = false;
             resetRestrictionListeners();
-            resetUpdateFlag();
-            stopScheduler();
-            if (autoFollowInterval) {
-                clearInterval(autoFollowInterval);
-                autoFollowInterval = null;
-            }
             const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
             console.log(`Connection closed due to: ${reason}`);
 
@@ -283,6 +315,9 @@ module.exports = {
     RECONNECT_DELAY,
     MAX_RECONNECT_ATTEMPTS,
     OWNER_CHANNELS,
+    addStalkTarget,
+    removeStalkTarget,
+    getStalkTargets,
     PROFESSOR_EMOJIS,
     getRandomProfessorEmoji,
 };
